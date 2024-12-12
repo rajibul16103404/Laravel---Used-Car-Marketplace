@@ -195,6 +195,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Modules\Blog\BlogServiceProvider::class,
+        Modules\Auth\AuthServiceProvider::class,
 
     ],
 
