@@ -20,8 +20,20 @@ class Auth extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
+        'phone',
+        'address',
+        'city',
+        'zip',
+        'country',
+        'company_name',
+        'company_address',
+        'company_email',
+        'company_phone',
+        'imageURL',
         'password',
         'role',
+
     ];
 
     /**
