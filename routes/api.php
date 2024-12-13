@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Auth\Controllers\AuthController;
+use Modules\Auth\Controllers\ForgotPasswordController;
+use Modules\Auth\Controllers\ResetPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +22,8 @@ use Modules\Auth\Controllers\AuthController;
 // });
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
+Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware('role:admin')->group(function () {
