@@ -196,7 +196,18 @@ return [
         App\Providers\RouteServiceProvider::class,
         Modules\Blog\BlogServiceProvider::class,
         Modules\Auth\AuthServiceProvider::class,
-
+        Modules\Admin\Body_Type\Body_TypeServiceProvider::class,
+        Modules\Admin\Users\UserServiceProvider::class,
+        Modules\Admin\Category\CategoryServiceProvider::class,
+        Modules\Admin\Color\ColorServiceProvider::class,
+        Modules\Admin\Condition\ConditionServiceProvider::class,
+        Modules\Admin\Cylinders\CylinderServiceProvider::class,
+        Modules\Admin\Doors\DoorServiceProvider::class,
+        Modules\Admin\Drive_Type\Drive_TypeServiceProvider::class,
+        Modules\Admin\Fuel_Type\Fuel_TypeServiceProvider::class,
+        Modules\Admin\Make\MakeServiceProvider::class,
+        Modules\Admin\CarModel\CarModelServiceProvider::class,
+        Modules\Admin\Transmission\TransmissionServiceProvider::class,
     ],
 
     /*

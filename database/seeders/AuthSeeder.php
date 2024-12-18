@@ -18,22 +18,29 @@ class AuthSeeder extends Seeder
         DB::table('auths')->insert([
             [
                 'name' => 'User 1',
-                'email' => 'user1@example.com',
+                'email' => 'user1@xample.com',
                 'password' => Hash::make('password123'),
-                'phone' => '11111111',
+                'phone' => '1111111',
                 'role' => 0,
                 
             ],
             [
                 'name' => 'User 2',
-                'email' => 'user2@example.com',
+                'email' => 'user2@xample.com',
                 'password' => Hash::make('password123'),
                 'phone' => '11111112',
                 'role' => 0,
             ],
             [
+                'name' => 'Admin1',
+                'email' => 'admin1@xample.com',
+                'password' => Hash::make('adminpassword'),
+                'phone' => '11111115',
+                'role' => 1,
+            ],
+            [
                 'name' => 'Admin User',
-                'email' => 'admin@example.com',
+                'email' => 'admin@xample.com',
                 'password' => Hash::make('adminpassword'),
                 'phone' => '11111113',
                 'role' => 1,
