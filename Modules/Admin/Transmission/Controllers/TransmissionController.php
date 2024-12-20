@@ -27,19 +27,55 @@ class TransmissionController extends Controller
 
         return response()->json([
             'message' => 'New Transmission Added Successfully',
-            'transmission' => $transmission,
+            'data' => $transmission,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $transmission = Transmission::all();
+        // $transmission = Transmission::all();
+
+        // return response()->json([
+        //     'message' => 'Transmissions data retrieved',
+        //     'data' => $transmission,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Transmission::paginate($perPage);
 
         return response()->json([
-            'message' => 'Transmissions data retrieved',
-            'transmission' => $transmission,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $transmission = Transmission::find($id);
+    
+        // Check if product exists
+        if (!$transmission) {
+            return response()->json([
+                'message' => 'Transmission not found',
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => 'Transmission data retrieved successfully',
+            'data' => $transmission,
         ], 200);
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class TransmissionController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Transmission Updated Successfully',
-            'transmission' => $transmission,
+            'data' => $transmission,
         ], 200);
     }
 

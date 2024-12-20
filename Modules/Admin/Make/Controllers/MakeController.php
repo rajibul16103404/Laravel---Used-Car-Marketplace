@@ -27,19 +27,55 @@ class MakeController extends Controller
 
         return response()->json([
             'message' => 'New Make Added Successfully',
-            'make' => $make,
+            'data' => $make,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $make = Make::all();
+        // $make = Make::all();
+
+        // return response()->json([
+        //     'message' => 'Makes data retrieved',
+        //     'data' => $make,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Make::paginate($perPage);
 
         return response()->json([
-            'message' => 'Makes data retrieved',
-            'make' => $make,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $make = Make::find($id);
+    
+        // Check if product exists
+        if (!$make) {
+            return response()->json([
+                'message' => 'Make not found',
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => 'Make data retrieved successfully',
+            'data' => $make,
         ], 200);
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class MakeController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Make Updated Successfully',
-            'make' => $make,
+            'data' => $make,
         ], 200);
     }
 

@@ -27,19 +27,55 @@ class CarModelController extends Controller
 
         return response()->json([
             'message' => 'New Car Model Added Successfully',
-            'carmodel' => $carmodel,
+            'data' => $carmodel,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $carmodel = Carmodel::all();
+        // $carmodel = Carmodel::all();
+
+        // return response()->json([
+        //     'message' => 'Car Models data retrieved',
+        //     'data' => $carmodel,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Carmodel::paginate($perPage);
 
         return response()->json([
-            'message' => 'Car Models data retrieved',
-            'carmodel' => $carmodel,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $car_model = Carmodel::find($id);
+
+        // Check if product exists
+        if (!$car_model) {
+            return response()->json([
+                'message' => 'Car Model not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Car Model data retrieved successfully',
+            'data' => $car_model,
         ], 200);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class CarModelController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Car Model Updated Successfully',
-            'carmodel' => $carmodel,
+            'data' => $carmodel,
         ], 200);
     }
 

@@ -208,6 +208,7 @@ return [
         Modules\Admin\Make\MakeServiceProvider::class,
         Modules\Admin\CarModel\CarModelServiceProvider::class,
         Modules\Admin\Transmission\TransmissionServiceProvider::class,
+        Modules\Admin\CarLists\CarListServiceProvider::class,
     ],
 
     /*

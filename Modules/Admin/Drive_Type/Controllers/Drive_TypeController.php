@@ -27,19 +27,55 @@ class Drive_TypeController extends Controller
 
         return response()->json([
             'message' => 'New Drive type Added Successfully',
-            'drive_type' => $drive_type,
+            'data' => $drive_type,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $drive_type = Drive_type::all();
+        // $drive_type = Drive_type::all();
+
+        // return response()->json([
+        //     'message' => 'Drive types data retrieved',
+        //     'data' => $drive_type,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Drive_type::paginate($perPage);
 
         return response()->json([
-            'message' => 'Drive types data retrieved',
-            'drive_type' => $drive_type,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $drive_type = Drive_type::find($id);
+    
+        // Check if product exists
+        if (!$drive_type) {
+            return response()->json([
+                'message' => 'Drive Type not found',
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => 'Drive Type data retrieved successfully',
+            'data' => $drive_type,
         ], 200);
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class Drive_TypeController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Drive type Updated Successfully',
-            'drive_type' => $drive_type,
+            'data' => $drive_type,
         ], 200);
     }
 

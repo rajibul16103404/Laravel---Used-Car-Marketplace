@@ -27,19 +27,55 @@ class DoorController extends Controller
 
         return response()->json([
             'message' => 'New Door Added Successfully',
-            'door' => $door,
+            'data' => $door,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $door = Door::all();
+        // $door = Door::all();
+
+        // return response()->json([
+        //     'message' => 'Doors data retrieved',
+        //     'data' => $door,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Door::paginate($perPage);
 
         return response()->json([
-            'message' => 'Doors data retrieved',
-            'door' => $door,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $door = Door::find($id);
+
+        // Check if product exists
+        if (!$door) {
+            return response()->json([
+                'message' => 'Door not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Door data retrieved successfully',
+            'data' => $door,
         ], 200);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class DoorController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Door Updated Successfully',
-            'door' => $door,
+            'data' => $door,
         ], 200);
     }
 

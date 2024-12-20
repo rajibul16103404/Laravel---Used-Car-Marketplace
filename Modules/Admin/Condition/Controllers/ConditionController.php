@@ -27,19 +27,55 @@ class ConditionController extends Controller
 
         return response()->json([
             'message' => 'New Condition Added Successfully',
-            'condition' => $condition,
+            'data' => $condition,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $condition = Condition::all();
+        // $condition = Condition::all();
+
+        // return response()->json([
+        //     'message' => 'Conditions data retrieved',
+        //     'data' => $condition,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Condition::paginate($perPage);
 
         return response()->json([
-            'message' => 'Conditions data retrieved',
-            'condition' => $condition,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $condition = Condition::find($id);
+
+        // Check if product exists
+        if (!$condition) {
+            return response()->json([
+                'message' => 'Condition not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Condition data retrieved successfully',
+            'data' => $condition,
         ], 200);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class ConditionController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Condition Updated Successfully',
-            'condition' => $condition,
+            'data' => $condition,
         ], 200);
     }
 

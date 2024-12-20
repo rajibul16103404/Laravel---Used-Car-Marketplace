@@ -27,19 +27,55 @@ class CylinderController extends Controller
 
         return response()->json([
             'message' => 'New Cylinder Added Successfully',
-            'cylinder' => $cylinder,
+            'data' => $cylinder,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $cylinder = Cylinder::all();
+        // $cylinder = Cylinder::all();
+
+        // return response()->json([
+        //     'message' => 'Cylinders data retrieved',
+        //     'data' => $cylinder,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Cylinder::paginate($perPage);
 
         return response()->json([
-            'message' => 'Cylinders data retrieved',
-            'cylinder' => $cylinder,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $cylinder = Cylinder::find($id);
+
+        // Check if product exists
+        if (!$cylinder) {
+            return response()->json([
+                'message' => 'Cylinder not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Cylinder data retrieved successfully',
+            'data' => $cylinder,
         ], 200);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class CylinderController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Cylinder Updated Successfully',
-            'cylinder' => $cylinder,
+            'data' => $cylinder,
         ], 200);
     }
 

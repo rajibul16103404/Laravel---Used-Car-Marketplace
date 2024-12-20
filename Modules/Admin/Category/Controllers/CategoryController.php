@@ -27,19 +27,55 @@ class CategoryController extends Controller
 
         return response()->json([
             'message' => 'New Category Added Successfully',
-            'category' => $category,
+            'data' => $category,
         ], status: 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $category = Category::all();
+        // $category = Category::all();
+
+        // return response()->json([
+        //     'message' => 'Category data retrieved',
+        //     'data' => $category,
+        // ], 200);
+
+        $perPage = $request->input('per_page', 10);
+
+        $data = Category::paginate($perPage);
 
         return response()->json([
-            'message' => 'Categorys data retrieved',
-            'category' => $category,
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function show($id)
+    {
+        // Find product by ID
+        $category = Category::find($id);
+
+        // Check if product exists
+        if (!$category) {
+            return response()->json([
+                'message' => 'Category not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Category data retrieved successfully',
+            'data' => $category,
         ], 200);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -72,7 +108,7 @@ class CategoryController extends Controller
         // Return success response
         return response()->json([
             'message' => 'Category Updated Successfully',
-            'category' => $category,
+            'data' => $category,
         ], 200);
     }
 
