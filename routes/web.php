@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ComposerController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -103,4 +104,9 @@ Route::get('/drop-table/{table}', function ($table) {
         return response()->json(['error' => 'Error dropping table: ' . $e->getMessage()], 500);
     }
 });
+
+
+
+// install whatsapp
+Route::get('/composer-require-whatsapp', [ComposerController::class, 'composerRequireWhatsapp'])->middleware('auth'); // Ensure authentication
 

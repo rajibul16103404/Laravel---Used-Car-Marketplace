@@ -194,7 +194,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        Modules\Blog\BlogServiceProvider::class,
+        Modules\WhatsappBot\WhatsappBotServiceProvider::class,
         Modules\Auth\AuthServiceProvider::class,
         Modules\Admin\Body_Type\Body_TypeServiceProvider::class,
         Modules\Admin\Users\UserServiceProvider::class,
@@ -224,6 +224,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
+        'Whatsapp' => MissaelAnda\Whatsapp\Facade\Whatsapp::class,
     ])->toArray(),
 
 ];

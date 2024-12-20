@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Blog;
+namespace Modules\WhatsappBot;
 
 use Illuminate\Support\ServiceProvider;
 
-class BlogServiceProvider extends ServiceProvider
+class WhatsappBotServiceProvider extends ServiceProvider
 {
     public function boot()
     {

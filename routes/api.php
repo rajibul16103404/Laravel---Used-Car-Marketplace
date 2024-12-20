@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Body_Type\Controllers\Body_TypeController;
 use Modules\Admin\CarLists\Controllers\CarListController;
@@ -19,6 +21,7 @@ use Modules\Admin\Drive_Type\Controllers\Drive_TypeController;
 use Modules\Admin\Fuel_Type\Controllers\Fuel_TypeController;
 use Modules\Admin\Make\Controllers\MakeController;
 use Modules\Admin\Transmission\Controllers\TransmissionController;
+use Modules\WhatsappBot\Controllers\WhatsappBotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,11 +38,38 @@ use Modules\Admin\Transmission\Controllers\TransmissionController;
 //     return $request->user();
 // });
 
+// Whatsapp
+
+Route::get('/send', [WhatsappBotController::class, 'index'])->name('demo');
+
+
+
+
+
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
+
+// Email Verification Route
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return response()->json(['message' => 'Email successfully verified.']);
+})->name('verification.verify');
+
+// Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+//     $request->fulfill();
+//     return response()->json(['message' => 'Email successfully verified.']);
+// })->middleware(['auth:sanctum'])->name('verification.verify');
+
+
+
+// Resend verification email
+Route::post('/email/resend', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return response()->json(['message' => 'Verification email resent.']);
+})->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware('role:admin')->group(function () {

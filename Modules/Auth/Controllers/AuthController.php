@@ -5,8 +5,13 @@ namespace Modules\Auth\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Modules\Auth\Models\Auth;
+use Modules\Auth\Mail\VerifyEmail; // Custom email Mailable
+use Illuminate\Auth\Notifications\VerifyEmail as VerifyEmailNotification;
 
 class AuthController extends Controller
 {
@@ -23,11 +28,15 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        if(!$user->hasVerifiedEmail()){
+            return response()->json(['message' => 'Please verify your email address.'],403);
+        }
+
         // Generate token
         $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
 
         return response()->json([
-            'user' => $user, $token,
+            'user' => $user,
             'token' => $token,
         ]);
     
@@ -41,7 +50,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:auths',
-            'phone' => 'required|integer|unique:auths',
+            'phone' => 'required|string|unique:auths',
             'address' => 'nullable|text',
             'city'=> 'nullable|string',
             'zip'=> 'nullable|integer|max:5',
@@ -50,12 +59,20 @@ class AuthController extends Controller
             'company_address'=> 'nullable|string',
             'company_email'=> 'nullable|string|email',
             'company_phone'=> 'nullable|integer|max:13',
-            'imageURL'=> 'nullable|string',
+            'imageURL'=> 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $path = null;
+
+        if ($request->hasFile('imageURL')) {
+            // Store the image in the 'public' disk and get the path
+            $path = $request->file('imageURL')->store('images', 'public');
+            $path = Storage::url($path);
         }
 
         // Create a new user
@@ -71,16 +88,25 @@ class AuthController extends Controller
             'company_address'=> $request->company_address,
             'company_email'=> $request->company_email,
             'company_phone'=> $request->company_phone,
-            'imageURL'=> $request->imageURL,
+            'imageURL'=> $path,
             'password' => Hash::make($request->password),
         ]);
+
+        $user = Auth::latest('id')->first();
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),  // URL validity time
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        Mail::to($user->email)->send(new VerifyEmail($verificationUrl));
 
         // Optionally generate an API token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
+            'message' => 'User registered successfully. Please verify your email',
             'token' => $token,
         ], 201);
     }
