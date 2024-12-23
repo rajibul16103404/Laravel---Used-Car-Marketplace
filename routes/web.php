@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\WebhooController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,3 +111,6 @@ Route::get('/drop-table/{table}', function ($table) {
 // install whatsapp
 Route::get('/composer-require-whatsapp', [ComposerController::class, 'composerRequireWhatsapp'])->middleware('auth'); // Ensure authentication
 
+
+
+// webhook

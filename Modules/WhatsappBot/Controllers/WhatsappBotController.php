@@ -3,6 +3,7 @@
 namespace Modules\WhatsappBot\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Request;
 use MissaelAnda\Whatsapp\Facade\Whatsapp;
 use MissaelAnda\Whatsapp\Messages\TemplateMessage;
 use MissaelAnda\Whatsapp\Messages\Components\Body;
@@ -10,25 +11,29 @@ use MissaelAnda\Whatsapp\Messages\Components\Parameters\Text;
 
 class WhatsappBotController extends Controller
 {
-    public function index()
+    public function index($phone)
     {
         // Generate a random 6-digit OTP
-        $otp = rand(100000, 999999);
+
 
         // Add country code +88 and format phone number
-        $phone = '8801956908646';
+
+        // dd(Body::create(['text' => "{$text1} {$text}"]));
+
 
         try {
-            Whatsapp::send($phone, TemplateMessage::create()
-                ->name('one_time_password')
-                ->language('en_US')
-                ->body(Body::create([
-                    Text::create($otp),
-                ])));
+            Whatsapp::send(
+                $phone,
+                TemplateMessage::create()
+                    ->name('hello_world')
+                    ->language('en_US')
+
+            );
+            
 
             return response()->json([
                 'success' => true,
-                'message' => 'OTP sent successfully'
+                'message' => 'Message sent successfully'
             ]);
 
         } catch (\Exception $e) {

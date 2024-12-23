@@ -1,9 +1,7 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Body_Type\Controllers\Body_TypeController;
 use Modules\Admin\CarLists\Controllers\CarListController;
@@ -22,6 +20,7 @@ use Modules\Admin\Fuel_Type\Controllers\Fuel_TypeController;
 use Modules\Admin\Make\Controllers\MakeController;
 use Modules\Admin\Transmission\Controllers\TransmissionController;
 use Modules\WhatsappBot\Controllers\WhatsappBotController;
+use Modules\WhatsappBot\Controllers\WhatsAppController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +36,10 @@ use Modules\WhatsappBot\Controllers\WhatsappBotController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+
+
+// Webhook
+Route::post('/webhook', [WhatsAppController::class, 'webhook']);
 
 // Whatsapp
 

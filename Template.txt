@@ -1,0 +1,84 @@
+Template name: verify
+Body: Provide the OTP send your email address.
+
+Template name: verify_failed
+Body: You are not authorized.
+
+Template name: verify_success
+Body: Welcome {{username}}. What do you want? {button}List a Car. {button} View List.
+
+Template name: make_list
+Body: Okey. Give the following information. 
+
+Template name: car_title
+Body: Title
+
+Template name: car_make
+Body: Make
+
+Template name: car_model
+Body: Model
+
+Template name: car_body_type
+Body: Body Type
+
+Template name: car_drive_type
+Body: Drive Type
+
+Template name: car_transmission
+Body: Transmission
+
+Template name: car_condition
+Body: Condition
+
+Template name: car_year
+Body: Year
+
+Template name: car_fuel_type
+Body: Fuel Type 
+
+Template name: car_engine
+Body: Engine 
+
+Template name: car_door
+Body: Door 
+
+Template name: car_cylinder
+Body: Cylinder 
+
+Template name: car_color
+Body: Color 
+
+Template name: car_description
+Body: Description 
+
+Template name: car_price
+Body: Price 
+
+Template name: car_safety_features
+Body: Safety Features (use '/' to separate)
+
+Template name: car_key_features
+Body: Key Features (use '/' to separate)
+
+Template name: car_category
+Body: Category
+
+Template name: car_image
+Body: Image 
+
+Template name: car_image_confirm
+Body: {header = image}Here is the image you upload.
+
+Template name: car_video
+Body: Video (to skip type 'no')
+
+Template name: car_finish
+Body: Please wait for a while. We are processing your data.
+
+Template name: car_list_done
+Body: Your car is in the list. To check your list type "view_list".
+
+Template name: view_list
+Body: Car List.
+
