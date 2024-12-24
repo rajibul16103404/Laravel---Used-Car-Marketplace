@@ -14,18 +14,18 @@ class ResetPasswordController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:auths,email',
-            'token' => 'required',
-            'password' => 'required|string|confirmed',
+            'otp' => 'required',
+            'password' => 'required|string',
         ]);
 
         // Check the token
         $passwordReset = DB::table('password_resets')
             ->where('email', $request->email)
-            ->where('token', $request->token)
+            ->where('otp', $request->otp)
             ->first();
 
         if (!$passwordReset) {
-            return response()->json(['message' => 'Invalid token.'], 400);
+            return response()->json(['message' => 'Invalid OTP.'], 400);
         }
 
         // Update the user's password

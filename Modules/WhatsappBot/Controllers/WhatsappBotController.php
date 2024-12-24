@@ -11,7 +11,7 @@ use MissaelAnda\Whatsapp\Messages\Components\Parameters\Text;
 
 class WhatsappBotController extends Controller
 {
-    public function index($phone)
+    public function index()
     {
         // Generate a random 6-digit OTP
 
@@ -23,7 +23,7 @@ class WhatsappBotController extends Controller
 
         try {
             Whatsapp::send(
-                $phone,
+                "8801956908646",
                 TemplateMessage::create()
                     ->name('hello_world')
                     ->language('en_US')

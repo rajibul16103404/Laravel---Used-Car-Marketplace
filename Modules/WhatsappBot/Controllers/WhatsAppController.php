@@ -3,10 +3,14 @@
 namespace Modules\WhatsappBot\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\validate_phone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use MissaelAnda\Whatsapp\Facade\Whatsapp;
 use MissaelAnda\Whatsapp\Messages\TemplateMessage;
+use Modules\Admin\Users\Models\Auth;
+use Modules\Auth\Mail\VerifyEmail;
 
 class WhatsAppController extends Controller
 {
@@ -52,6 +56,19 @@ class WhatsAppController extends Controller
                         Log::info($change['value']['messages'][0]['from']);
 
                         try {
+                            $phoneNumber = Auth::select('email', 'phone')->where('phone', $phone)->first();
+                            if($phoneNumber)
+                            {
+                                $otp = rand(000000,999999);
+                                validate_phone::create([
+                                    ['phone'=>$phoneNumber],
+                                    ['otp'=>$otp],
+                                ]);
+                                if(validate_phone::select('phone', 'otp')->where('phone', $phone)->first())
+                                {
+                                    Mail::to($phoneNumber->email)->send(new VerifyEmail($otp));
+                                }
+                            }
                             Whatsapp::send(
                                 $phone,
                                 TemplateMessage::create()

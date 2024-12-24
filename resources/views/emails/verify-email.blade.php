@@ -7,8 +7,7 @@
 </head>
 <body>
     <h1>Welcome to DKingSolutions</h1>
-    <p>Click the link below to verify your email address:</p>
-    <a href="{{ $verificationUrl }}">Verify Email</a>
-    <p>If above link now worked Try this {{$verificationUrl}}</p>
+    <p>Here is your OTP : <b>{{$otp}}</b></p>
+    <p>Use it to validate your account.</p>
 </body>
 </html>

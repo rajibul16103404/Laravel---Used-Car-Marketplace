@@ -1,9 +1,11 @@
 <?php
 
+use Modules\Admin\CarLists\Controllers\AllDropController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Body_Type\Controllers\Body_TypeController;
+use Modules\Admin\CarLists\Controllers\CarListAutoController;
 use Modules\Admin\CarLists\Controllers\CarListController;
 use Modules\Admin\CarModel\Controllers\CarModelController;
 use Modules\Admin\Category\Controllers\CategoryController;
@@ -39,7 +41,8 @@ use Modules\WhatsappBot\Controllers\WhatsAppController;
 
 
 // Webhook
-Route::post('/webhook', [WhatsAppController::class, 'webhook']);
+Route::post('/webhook', [WhatsAppController::class, 'handleWebhook']);
+Route::get('/webhook', [WhatsAppController::class, 'verifyWebhook']);
 
 // Whatsapp
 
@@ -51,6 +54,8 @@ Route::get('/send', [WhatsappBotController::class, 'index'])->name('demo');
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
+
+Route::post('/verify', [AuthController::class, 'verifyEmail'])->name('VerifyEmail');
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
@@ -190,11 +195,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
             Route::put('/{id}', [CarListController::class, 'update'])->name('update');
             Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
+            
         });
 
 
-        Route::get('/admin/dashboard', function () {
-            return response()->json(['message' => 'Welcome, Admin']);
+        // Route::get('/admin', function () {
+        Route::prefix('/admin')->group(function(){
+            Route::get('/all-drop', [AllDropController::class, 'index'])->name('showAllDrop');
+            Route::get('/all-cars', [CarListAutoController::class, 'index'])->name('showAllCars');
+            // return response()->json(['message' => 'Welcome, Admin']);
         });
     });
 

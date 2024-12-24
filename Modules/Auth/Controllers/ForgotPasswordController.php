@@ -17,19 +17,19 @@ class ForgotPasswordController extends Controller
         $request->validate(['email' => 'required|email|exists:auths,email']);
 
         // Generate a token
-        $token = Str::random(60);
+        $otp=rand(111111,999999);
 
         // Insert into password_resets table
         DB::table('password_resets')->updateOrInsert(
             ['email' => $request->email],
-            ['token' => $token, 'created_at' => Carbon::now()]
+            ['otp' => $otp, 'created_at' => Carbon::now()]
         );
 
         // Create a reset password URL
-        $url = url("/reset-password?token=$token&email=" . urlencode($request->email));
+        // $url = url("/reset-password?token=$token&email=" . urlencode($request->email));
 
         // Send email
-        Mail::to($request->email)->send(new ResetPasswordMail($url));
+        Mail::to($request->email)->send(new ResetPasswordMail($otp));
 
         return response()->json(['message' => 'Password reset email sent.'], 200);
     }
