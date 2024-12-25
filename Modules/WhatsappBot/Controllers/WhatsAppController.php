@@ -3,81 +3,39 @@
 namespace Modules\WhatsappBot\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use MissaelAnda\Whatsapp\Facade\Whatsapp;
-use MissaelAnda\Whatsapp\Messages\TemplateMessage;
+use Illuminate\Support\Facades\Request;
+use Twilio\Rest\Client;
 
 class WhatsAppController extends Controller
 {
-    // Verify the callback URL during setup
-    public function verifyWebhook(Request $request)
+    public function sendWhatsappMessage(Request $request)
     {
-        // Replace 'your_verify_token_here' with your actual verify token
-        $verifyToken = 'lolipop';
+        $sid = config('services.twilio.sid');
+        $token = config('services.twilio.auth_token');
+        $from = config('services.twilio.whatsapp_from');
 
-        $mode = $request->query('hub_mode');
-        $token = $request->query('hub_verify_token');
-        $challenge = $request->query('hub_challenge');
+        $twilio = new Client($sid, $token);
 
-        if ($mode === 'subscribe' && $token === $verifyToken) {
-            // Log verification success
-            Log::info("Webhook verified successfully.");
-            return response($challenge, 200);
-        } else {
-            // Log verification failure
-            Log::warning("Webhook verification failed.");
-            return response('Forbidden', 403);
+        try {
+            $message = $twilio->messages->create(
+                "whatsapp:+8801709015762", // To
+                [
+                    'from' => $from,
+                    'contentSid' => 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
+                    'contentVariables' => json_encode(["1" => "12/1", "2" => "3pm"]),
+                    'body' => 'Here is thmc,39e first message'
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Message sent successfully!',
+                'sid' => $message->sid,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to send message.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-    }
-
-    // Handle incoming webhook events
-    public function handleWebhook(Request $request)
-    {
-        // Log the incoming request payload
-        Log::info('Incoming webhook payload:', $request->all());
-
-        // Handle specific webhook events
-        $data = $request->all();
-
-        if (!empty($data['entry'])) {
-            foreach ($data['entry'] as $entry) {
-                if (!empty($entry['changes'])) {
-                    foreach ($entry['changes'] as $change) {
-                        // Process the change object as per your requirement
-                        // $messageProduct = $change['value']['messaging_product'];
-                        $phone = $change['value']['messages'][0]['from'];
-                        // $message = $change['value']['messages'][0]['text']['body'];
-                        // $response_data=json_decode($change);
-                        Log::info($change['value']['messages'][0]['from']);
-
-                        try {
-                            Whatsapp::send(
-                                $phone,
-                                TemplateMessage::create()
-                                    ->name('hello_world')
-                                    ->language('en_US')
-                
-                            );
-                            
-                
-                            return response()->json([
-                                'success' => true,
-                                'message' => 'Message sent successfully'
-                            ]);
-                
-                        } catch (\Exception $e) {
-                            return response()->json([
-                                'success' => false,
-                                'message' => 'Failed to send OTP: ' . $e->getMessage()
-                            ], 500);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Return a success response to acknowledge receipt
-        return response('Event received', 200);
     }
 }

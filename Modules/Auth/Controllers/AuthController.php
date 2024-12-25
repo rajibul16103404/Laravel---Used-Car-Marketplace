@@ -46,6 +46,7 @@ class AuthController extends Controller
     }
     public function register(Request $request)
     {
+        
         // Validate the request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -75,10 +76,14 @@ class AuthController extends Controller
             $path = Storage::url($path);
         }
 
+        $otp = rand(111111,999999);
+        $email = $request->email;
+
         // Create a new user
         $user = Auth::create([
             'name' => $request->name,
             'email' => $request->email,
+            'otp'=>$otp,
             'phone'=> $request->phone,
             'address'=> $request->address,
             'city'=> $request->city,
@@ -94,13 +99,15 @@ class AuthController extends Controller
 
         $user = Auth::latest('id')->first();
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),  // URL validity time
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
+        // $verificationUrl = URL::temporarySignedRoute(
+        //     'verification.verify',
+        //     now()->addMinutes(60),  // URL validity time
+        //     ['id' => $user->id, 'hash' => sha1($user->email)]
+        // );
 
-        Mail::to($user->email)->send(new VerifyEmail($verificationUrl));
+        // $otp = rand(111111,999999);
+
+        Mail::to($user->email)->send(new VerifyEmail($otp));
 
         // Optionally generate an API token
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -108,6 +115,35 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'User registered successfully. Please verify your email',
             'token' => $token,
+            'otp'=>$otp,
+            'email'=>$email,
         ], 201);
     }
+
+    public function verifyEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|integer',
+        ]);
+
+        $user = Auth::where([
+            ['email', '=', $request->email],
+            ['otp', '=', $request->otp],
+        ])->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Invalid email or code'], 401);
+        }
+
+        $verify = $user->update([
+            'email_verified_at' => now(),
+            'otp' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Verified Successfully.',
+        ]);
+    }
+
 }

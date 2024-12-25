@@ -10,7 +10,8 @@
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
-        "missael-anda/laravel-whatsapp": "^0.8.6"
+        "missael-anda/laravel-whatsapp": "^0.8.6",
+        "twilio/sdk": "^8.3"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.14",

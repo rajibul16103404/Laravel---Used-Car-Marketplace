@@ -2,7 +2,7 @@
 <html>
 <body>
     <h1>Reset Password</h1>
-    <p>Click the link below to reset your password:</p>
-    <a href="{{ $url }}">{{ $url }}</a>
+    <p>This is your OTP:</p>
+    <b></b>{{ $otp }}</b>
 </body>
 </html>

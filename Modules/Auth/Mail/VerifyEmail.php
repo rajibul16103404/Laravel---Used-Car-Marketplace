@@ -9,12 +9,12 @@ class VerifyEmail extends Mailable
 {
     use SerializesModels;
 
-    public $verificationUrl;
+    public $otp;
 
     // Constructor to pass the verification URL to the Mailable
-    public function __construct($verificationUrl)
+    public function __construct($otp)
     {
-        $this->verificationUrl = $verificationUrl;
+        $this->otp = $otp;
     }
 
     public function build()
