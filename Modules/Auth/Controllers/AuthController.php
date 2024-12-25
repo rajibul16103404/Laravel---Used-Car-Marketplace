@@ -77,6 +77,7 @@ class AuthController extends Controller
         }
 
         $otp = rand(111111,999999);
+        $email = $request->email;
 
         // Create a new user
         $user = Auth::create([
@@ -115,27 +116,34 @@ class AuthController extends Controller
             'message' => 'User registered successfully. Please verify your email',
             'token' => $token,
             'otp'=>$otp,
+            'email'=>$email,
         ], 201);
     }
 
-    public function verifyEmail(Request $request){
+    public function verifyEmail(Request $request)
+    {
         $request->validate([
+            'email' => 'required|email',
             'otp' => 'required|integer',
         ]);
 
-        $user = Auth::where('otp', $request->otp)->first();
+        $user = Auth::where([
+            ['email', '=', $request->email],
+            ['otp', '=', $request->otp],
+        ])->first();
 
         if (!$user) {
-            return response()->json(['message' => 'Wrong Code'], 401);
+            return response()->json(['message' => 'Invalid email or code'], 401);
         }
 
         $verify = $user->update([
-            'email_verified_at'=> now(),
-            'otp'=>null,
+            'email_verified_at' => now(),
+            'otp' => null,
         ]);
 
         return response()->json([
             'message' => 'Verified Successfully.',
         ]);
     }
+
 }

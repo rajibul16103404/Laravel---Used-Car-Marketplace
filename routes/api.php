@@ -21,6 +21,7 @@ use Modules\Admin\Drive_Type\Controllers\Drive_TypeController;
 use Modules\Admin\Fuel_Type\Controllers\Fuel_TypeController;
 use Modules\Admin\Make\Controllers\MakeController;
 use Modules\Admin\Transmission\Controllers\TransmissionController;
+use Modules\WhatsappBot\Controllers\TwilioWebhookController;
 use Modules\WhatsappBot\Controllers\WhatsappBotController;
 use Modules\WhatsappBot\Controllers\WhatsAppController;
 
@@ -41,8 +42,9 @@ use Modules\WhatsappBot\Controllers\WhatsAppController;
 
 
 // Webhook
-Route::post('/webhook', [WhatsAppController::class, 'handleWebhook']);
-Route::get('/webhook', [WhatsAppController::class, 'verifyWebhook']);
+Route::post('/twilio/webhook', [TwilioWebhookController::class, 'handleReply']);
+Route::post('/webhook', [WhatsAppController::class, 'sendWhatsappMessage']);
+// Route::get('/webhook', [WhatsAppController::class, 'verifyWebhook']);
 
 // Whatsapp
 
@@ -78,6 +80,18 @@ Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return response()->json(['message' => 'Verification email resent.']);
 })->middleware('auth:sanctum');
+
+
+Route::prefix('/car-list')->group(function(){
+    Route::post('/', [CarListController::class, 'store'])->name('store');
+    Route::get('/', [CarListController::class, 'index'])->name('index');
+    Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
+    Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+    Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
+    
+});
+
+
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware('role:admin')->group(function () {
