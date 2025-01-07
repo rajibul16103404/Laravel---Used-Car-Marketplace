@@ -119,14 +119,14 @@ class CarListController extends Controller
             $make = Make::find($car_list->make_id);
             $model = Carmodel::find($car_list->model_id);
             $body_type = Body_Type::find($car_list->body_type_id);
-            $drive_type = Drive_type::find($car_list->drive_type_id);
+            // $drive_type = Drive_type::find($car_list->drive_type_id);
             $transmission = Transmission::find($car_list->transmission_id);
-            $condition = Condition::find($car_list->condition_id);
+            // $condition = Condition::find($car_list->condition_id);
             $fuel_type = Fuel_type::find($car_list->fuel_type_id);
             $door = Door::find($car_list->door_id);
             $cylinder = Cylinder::find($car_list->cylinder_id);
-            $color = Color::find($car_list->color_id);
-            $category = Category::find($car_list->category_id);
+            // $color = Color::find($car_list->color_id);
+            // $category = Category::find($car_list->category_id);
         }
 
         // Check if product exists
@@ -143,14 +143,14 @@ class CarListController extends Controller
                 'make'=>$make,
                 'model'=>$model,
                 'body_type'=>$body_type,
-                'drive_type'=>$drive_type,
+                // 'drive_type'=>$drive_type,
                 'transmission'=>$transmission,
-                'condition'=>$condition,
+                // 'condition'=>$condition,
                 'fuel_type'=>$fuel_type,
                 'door'=>$door,
                 'cylinder'=>$cylinder,
-                'color'=>$color,
-                'category'=>$category,
+                // 'color'=>$color,
+                // 'category'=>$category,
             ],
         ], 200);
     }

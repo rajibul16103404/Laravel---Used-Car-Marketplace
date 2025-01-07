@@ -23,12 +23,14 @@ use Modules\Admin\Engine_Block\Models\EngineBlock;
 use Modules\Admin\Engine_Size\Models\EngineSize;
 use Modules\Admin\Fuel_Type\Models\Fuel_type;
 use Modules\Admin\Highway_Mpg\Models\HighwayMpg;
+use Modules\Admin\Inventory_Type\Models\InventoryType;
 use Modules\Admin\MadeIn\Models\MadeIn;
 use Modules\Admin\Make\Models\Make;
 use Modules\Admin\Overall_Height\Models\OverallHeight;
 use Modules\Admin\Overall_Length\Models\OverallLength;
 use Modules\Admin\Overall_Width\Models\OverallWidth;
 use Modules\Admin\Powertrain_Type\Models\PowertrainType;
+use Modules\Admin\Seller_Type\Models\SellerType;
 use Modules\Admin\Std_seating\Models\StdSeating;
 use Modules\Admin\Transmission\Models\Transmission;
 use Modules\Admin\Trim\Models\Trim;
@@ -39,37 +41,41 @@ use Modules\Admin\Year\Models\Year;
 class AllDropController extends Controller
 {
     public function index(){
-        $exterior = ExteriorColor::all();
-        $interior = InteriorColor::all();
-        $year = Year::all();
-        $make = Make::all();
-        $model = Carmodel::all();
-        $trim = Trim::all();
-        $version = Version::all();
-        $body_type = Body_Type::all();
-        $body_subtype = BodySubType::all();
-        $vehicle_type = VehicleType::all();
-        $transmission = Transmission::all();
-        $drivetrain = DriveTrain::all();
-        $fuel_type = Fuel_type::all();
-        $engine = Engine::all();
-        $enginesize = EngineSize::all();
-        $engineblock = EngineBlock::all();
-        $door = Door::all();
-        $cylinder = Cylinder::all();
-        $madein = MadeIn::all();
-        $overallheight = OverallHeight::all();
-        $overalllength = OverallLength::all();
-        $overallwidth = OverallWidth::all();
-        $stdseating = StdSeating::all();
-        $highway_mpg = HighwayMpg::all();
-        $city_mpg = CityMpg::all();
-        $powertraintype = PowertrainType::all();
+        $exterior = ExteriorColor::where('status',1)->get();
+        $interior = InteriorColor::where('status',1)->get();
+        $inventory_type = InventoryType::where('status',1)->get();
+        $seller_type = SellerType::where('status',1)->get();
+        $year = Year::where('status',1)->get();
+        $make = Make::where('status',1)->get();
+        $model = Carmodel::where('status',1)->get();
+        $trim = Trim::where('status',1)->get();
+        $version = Version::where('status',1)->get();
+        $body_type = Body_Type::where('status',1)->get();
+        $body_subtype = BodySubType::where('status',1)->get();
+        $vehicle_type = VehicleType::where('status',1)->get();
+        $transmission = Transmission::where('status',1)->get();
+        $drivetrain = DriveTrain::where('status',1)->get();
+        $fuel_type = Fuel_type::where('status',1)->get();
+        $engine = Engine::where('status',1)->get();
+        $enginesize = EngineSize::where('status',1)->get();
+        $engineblock = EngineBlock::where('status',1)->get();
+        $door = Door::where('status',1)->get();
+        $cylinder = Cylinder::where('status',1)->get();
+        $madein = MadeIn::where('status',1)->get();
+        $overallheight = OverallHeight::where('status',1)->get();
+        $overalllength = OverallLength::where('status',1)->get();
+        $overallwidth = OverallWidth::where('status',1)->get();
+        $stdseating = StdSeating::where('status',1)->get();
+        $highway_mpg = HighwayMpg::where('status',1)->get();
+        $city_mpg = CityMpg::where('status',1)->get();
+        $powertraintype = PowertrainType::where('status',1)->get();
 
         
         return response([
-            'exterior'=> $exterior,
-            'interior'=> $interior,
+            'exterior_color'=> $exterior,
+            'interior_color'=> $interior,
+            'inventory_type'=>$inventory_type,
+            'seller_type'=>$seller_type,
             'year'=>$year,
             'make'=>$make,
             'model'=>$model,

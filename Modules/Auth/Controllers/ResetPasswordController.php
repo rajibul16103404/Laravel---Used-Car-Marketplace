@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Modules\Auth\Mail\welcome_mail;
 use Modules\Auth\Models\Auth;
 
 class ResetPasswordController extends Controller
@@ -36,6 +38,8 @@ class ResetPasswordController extends Controller
         // Delete the reset token
         DB::table('password_resets')->where('email', $request->email)->delete();
 
-        return response()->json(['message' => 'Password reset successful.'], 200);
+        Mail::to($user->email)->send(new welcome_mail($request->password));
+
+        return response()->json(['message' => 'Password reset successful.'], 200); 
     }
 }

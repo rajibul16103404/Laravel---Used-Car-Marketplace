@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ComposerController;
+use App\Http\Controllers\PrivatCarController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,8 @@ use App\Http\Controllers\WebhooController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('/', [PrivatCarController::class, 'index']);
 
 Route::get('/', function () {
     return view('welcome');

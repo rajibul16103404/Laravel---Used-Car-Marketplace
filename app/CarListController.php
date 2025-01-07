@@ -3,10 +3,8 @@
 namespace Modules\Admin\CarLists\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
 use Modules\Admin\CarLists\Models\Carlist;
@@ -68,7 +66,7 @@ class CarListController extends Controller
         // }
 
         $carlist = Carlist::create([
-            'car_id' => $request->car_id,
+            'car_id' => $request->sellecar_idr_id,
             'vin' => $request->vin,
             'heading' => $request->heading,
             'price' => $request->price,
@@ -144,38 +142,9 @@ class CarListController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-
-        $qry = Carlist::query()
-        ->join('years','carlists.year','=','years.id')
-        ->join('makes','carlists.make','=','makes.id')
-        ->join('carmodels','carlists.model','=','carmodels.id');
-
-        if($request->filled('heading')){
-            $qry->where('carlists.heading', 'LIKE', '%' . $request->heading . '%');
-        }
-
-        if($request->filled('year')){
-            $qry->where('years.name', $request->year);
-        }
-        
-        if($request->filled(key: 'make')){
-            $qry->where('makes.name', $request->make);
-        }
-
-        if($request->filled('model')){
-            $qry->where('carmodels.name', $request->model);
-        }
-
-        if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('year', 'desc');
-        }
-        if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('year', 'asc');
-        }
-        
     
         // Get paginated data
-        $data = $qry->select('carlists.*')->paginate($perPage);
+        $data = Carlist::paginate($perPage);
     
         // Add the corresponding year data for each car
         $items = $data->items();
@@ -183,8 +152,6 @@ class CarListController extends Controller
             $item->year = Year::find($item->year);
             $item->body_type = Body_Type::find($item->body_type);
             $item->fuel_type = Fuel_type::find($item->fuel_type);
-            $item->make = Make::find($item->make);
-            $item->model = Carmodel::find($item->model);
         }
     
         // Prepare response

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PrivatCarController;
 use Modules\Admin\CarLists\Controllers\AllDropController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -25,11 +26,13 @@ use Modules\Admin\Engine_Block\Controllers\EngineBlockController;
 use Modules\Admin\Engine_Size\Controllers\EngineSizeController;
 use Modules\Admin\Fuel_Type\Controllers\Fuel_TypeController;
 use Modules\Admin\Highway_Mpg\Controllers\HighwayMpgController;
+use Modules\Admin\Inventory_Type\Controllers\InventoryTypeController;
 use Modules\Admin\MadeIn\Controllers\MadeInController;
 use Modules\Admin\Make\Controllers\MakeController;
 use Modules\Admin\Overall_Height\Controllers\OverallHeightController;
 use Modules\Admin\Overall_Length\Controllers\OverallLengthController;
 use Modules\Admin\Overall_Width\Controllers\OverallWidthController;
+use Modules\Admin\Seller_Type\Controllers\SellerTypeController;
 use Modules\Admin\Std_seating\Controllers\StdSeatingController;
 use Modules\Admin\Transmission\Controllers\TransmissionController;
 use Modules\Admin\Trim\Controllers\TrimController;
@@ -56,6 +59,16 @@ use Modules\WhatsappBot\Controllers\WhatsAppController;
 // });
 
 
+// demo car list
+Route::get('/cars', [PrivatCarController::class, 'index']);
+
+//Car List Routes
+Route::prefix('/public/car-list')->group(function(){
+    Route::get('/', [CarListController::class, 'index'])->name('index');
+    Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
+});
+
+
 // Webhook
 Route::post('/twilio/webhook', [TwilioWebhookController::class, 'handleReply']);
 Route::post('/webhook', [WhatsAppController::class, 'sendWhatsappMessage']);
@@ -74,9 +87,10 @@ Route::get('/dealer', [CarListAutoController::class, 'get_dealer'])->name('deale
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 
+
 Route::post('/verify', [AuthController::class, 'verifyEmail'])->name('VerifyEmail');
 
-Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
+Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword'])->name('password.forgot');
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
 
 // Email Verification Route
@@ -99,14 +113,14 @@ Route::post('/email/resend', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::prefix('/car-list')->group(function(){
-    Route::post('/', [CarListController::class, 'store'])->name('store');
-    Route::get('/', [CarListController::class, 'index'])->name('index');
-    Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
-    Route::put('/{id}', [CarListController::class, 'update'])->name('update');
-    Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
+// Route::prefix('/car-list')->group(function(){
+//     Route::post('/', [CarListController::class, 'store'])->name('store');
+//     Route::get('/', [CarListController::class, 'index'])->name('index');
+//     Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
+//     Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+//     Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
     
-});
+// });
 
 
 
@@ -118,7 +132,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::prefix('/admin/users-list')->group(function(){
             Route::get('/', [UserController::class, 'index'])->name('index');
             Route::get('/{id}', [UserController::class, 'show'])->name('single_view');
+            // Route::get('/get-data', [UserController::class, 'getDataFromAPI'])->name('getData');
+
         });
+
+        Route::get('admin/get-data', [UserController::class, 'getDataFromAPI'])->name('getData');
        
 
         //Exterior Color Routes
@@ -137,6 +155,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/{id}', [InteriorColorController::class, 'show'])->name('single_view');
             Route::put('/{id}', [InteriorColorController::class, 'update'])->name('update');
             Route::delete('/{id}', [InteriorColorController::class, 'destroy'])->name('delete');
+        });
+
+        //Inventory Type Routes
+        Route::prefix('/admin/inventory-type')->group(function(){
+            Route::post('/', [InventoryTypeController::class, 'store'])->name('store');
+            Route::get('/', [InventoryTypeController::class, 'index'])->name('index');
+            Route::get('/{id}', [InventoryTypeController::class, 'show'])->name('single_view');
+            Route::put('/{id}', [InventoryTypeController::class, 'update'])->name('update');
+            Route::delete('/{id}', [InventoryTypeController::class, 'destroy'])->name('delete');
+        });
+
+        //Seller Type Routes
+        Route::prefix('/admin/seller-type')->group(function(){
+            Route::post('/', [SellerTypeController::class, 'store'])->name('store');
+            Route::get('/', [SellerTypeController::class, 'index'])->name('index');
+            Route::get('/{id}', [SellerTypeController::class, 'show'])->name('single_view');
+            Route::put('/{id}', [SellerTypeController::class, 'update'])->name('update');
+            Route::delete('/{id}', [SellerTypeController::class, 'destroy'])->name('delete');
         });
 
         //Year Routes
@@ -349,19 +385,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         
-
-
-        
-
-        
-
-
-        
-
-        
-
-        
-
         //Car List Routes
         Route::prefix('/admin/car-list')->group(function(){
             Route::post('/', [CarListController::class, 'store'])->name('store');
@@ -383,8 +406,184 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::middleware('role:user')->group(function () {
-        Route::get('/user/dashboard', function () {
-            return response()->json(['message' => 'Welcome, User']);
+
+
+        //Exterior Color Routes
+        Route::prefix('/exterior-color')->group(function(){
+            Route::post('/', [ExteriorColorController::class, 'store'])->name('store');
+            Route::get('/', [ExteriorColorController::class, 'index'])->name('index');
         });
+
+        //Interior Color Routes
+        Route::prefix('/interior-color')->group(function(){
+            Route::post('/', [InteriorColorController::class, 'store'])->name('store');
+            Route::get('/', [InteriorColorController::class, 'index'])->name('index');
+        });
+
+        //Inventory Type Routes
+        Route::prefix('/inventory-type')->group(function(){
+            Route::post('/', [InventoryTypeController::class, 'store'])->name('store');
+            Route::get('/', [InventoryTypeController::class, 'index'])->name('index');
+        });
+
+        //Seller Type Routes
+        Route::prefix('/seller-type')->group(function(){
+            Route::post('/', [SellerTypeController::class, 'store'])->name('store');
+            Route::get('/', [SellerTypeController::class, 'index'])->name('index');
+        });
+
+        //Year Routes
+        Route::prefix('/year')->group(function(){
+            Route::post('/', [YearController::class, 'store'])->name('store');
+            Route::get('/', [YearController::class, 'index'])->name('index');
+        });
+
+        //Make Routes
+        Route::prefix('/make')->group(function(){
+            Route::post('/', [MakeController::class, 'store'])->name('store');
+            Route::get('/', [MakeController::class, 'index'])->name('index');
+        });
+
+        //Car Model Routes
+        Route::prefix('/car-model')->group(function(){
+            Route::post('/', [CarModelController::class, 'store'])->name('store');
+            Route::get('/', [CarModelController::class, 'index'])->name('index');
+        });
+
+        //Trim Routes
+        Route::prefix('/trim')->group(function(){
+            Route::post('/', [TrimController::class, 'store'])->name('store');
+            Route::get('/', [TrimController::class, 'index'])->name('index');
+        });
+
+        //Version Routes
+        Route::prefix('/version')->group(function(){
+            Route::post('/', [VersionController::class, 'store'])->name('store');
+            Route::get('/', [VersionController::class, 'index'])->name('index');
+        });
+
+        //Body Type Routes
+        Route::prefix('/body-type')->group(function(){
+            Route::post('/', [Body_TypeController::class, 'store'])->name('store');
+            Route::get('/', [Body_TypeController::class, 'index'])->name('index');
+        });
+
+        //Body Sub Type Model Routes
+        Route::prefix('/body-sub-type')->group(function(){
+            Route::post('/', [BodySubTypeController::class, 'store'])->name('store');
+            Route::get('/', [BodySubTypeController::class, 'index'])->name('index');
+        });
+
+        //Vehicle Type Model Routes
+        Route::prefix('/vehicle-type')->group(function(){
+            Route::post('/', [VehicleTypeController::class, 'store'])->name('store');
+            Route::get('/', [VehicleTypeController::class, 'index'])->name('index');
+        });
+
+        //Transmisssion Routes
+        Route::prefix('/transmission')->group(function(){
+            Route::post('/', [TransmissionController::class, 'store'])->name('store');
+            Route::get('/', [TransmissionController::class, 'index'])->name('index');
+        });
+
+        //Drive Train Routes
+        Route::prefix('/drive-train')->group(function(){
+            Route::post('/', [DriveTrainController::class, 'store'])->name('store');
+            Route::get('/', [DriveTrainController::class, 'index'])->name('index');
+        });
+
+        //Fuel_Type Routes
+        Route::prefix('/fuel-type')->group(function(){
+            Route::post('/', [Fuel_TypeController::class, 'store'])->name('store');
+            Route::get('/', [Fuel_TypeController::class, 'index'])->name('index');
+        });
+
+        //Engine Routes
+        Route::prefix('/engine')->group(function(){
+            Route::post('/', [EngineController::class, 'store'])->name('store');
+            Route::get('/', [EngineController::class, 'index'])->name('index');
+        });
+
+        //Engine Size Routes
+        Route::prefix('/engine-size')->group(function(){
+            Route::post('/', [EngineSizeController::class, 'store'])->name('store');
+            Route::get('/', [EngineSizeController::class, 'index'])->name('index');
+        });
+
+        //Engine Block Routes
+        Route::prefix('/engine-bock')->group(function(){
+            Route::post('/', [EngineBlockController::class, 'store'])->name('store');
+            Route::get('/', [EngineBlockController::class, 'index'])->name('index');
+        });
+
+        //Door Routes
+        Route::prefix('/door')->group(function(){
+            Route::post('/', [DoorController::class, 'store'])->name('store');
+            Route::get('/', [DoorController::class, 'index'])->name('index');
+        });
+
+        //Cylinder Routes
+        Route::prefix('/cylinder')->group(function(){
+            Route::post('/', [CylinderController::class, 'store'])->name('store');
+            Route::get('/', [CylinderController::class, 'index'])->name('index');
+        });
+
+        //MAde In Routes
+        Route::prefix('/made-in')->group(function(){
+            Route::post('/', [MadeInController::class, 'store'])->name('store');
+            Route::get('/', [MadeInController::class, 'index'])->name('index');
+        });
+
+        //Overall Height Routes
+        Route::prefix('/overall-height')->group(function(){
+            Route::post('/', [OverallHeightController::class, 'store'])->name('store');
+            Route::get('/', [OverallHeightController::class, 'index'])->name('index');
+        });
+
+        //Overall Length Routes
+        Route::prefix('/overall-length')->group(function(){
+            Route::post('/', [OverallLengthController::class, 'store'])->name('store');
+            Route::get('/', [OverallLengthController::class, 'index'])->name('index');
+        });
+
+        //Overall Width Routes
+        Route::prefix('/overall-width')->group(function(){
+            Route::post('/', [OverallWidthController::class, 'store'])->name('store');
+            Route::get('/', [OverallWidthController::class, 'index'])->name('index');
+        });
+
+        //STD Seating Routes
+        Route::prefix('/std-seating')->group(function(){
+            Route::post('/', [StdSeatingController::class, 'store'])->name('store');
+            Route::get('/', [StdSeatingController::class, 'index'])->name('index');
+        });
+
+        //Highway Mileage Model Routes
+        Route::prefix('/highway-mpg')->group(function(){
+            Route::post('/', [HighwayMpgController::class, 'store'])->name('store');
+            Route::get('/', [HighwayMpgController::class, 'index'])->name('index');
+        });
+
+        //City Mileage Model Routes
+        Route::prefix('/city-mpg')->group(function(){
+            Route::post('/', [CityMpgController::class, 'store'])->name('store');
+            Route::get('/', [CityMpgController::class, 'index'])->name('index');
+        });
+
+
+        //Car List Routes
+        Route::prefix('/car-list')->group(function(){
+            Route::post('/', [CarListController::class, 'store'])->name('store');
+            Route::get('/', [CarListController::class, 'index'])->name('index');
+            Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
+            Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+        });
+
+
+        Route::prefix('/user')->group(function(){
+            Route::get('/all-drop', [AllDropController::class, 'index'])->name('showAllDrop');
+        });
+
+
     });
 });

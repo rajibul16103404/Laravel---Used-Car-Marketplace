@@ -3,6 +3,7 @@
 namespace Modules\Auth\Controllers;
 
 use App\Http\Controllers\Controller;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -12,33 +13,48 @@ use Illuminate\Support\Facades\Validator;
 use Modules\Auth\Models\Auth;
 use Modules\Auth\Mail\VerifyEmail; // Custom email Mailable
 use Illuminate\Auth\Notifications\VerifyEmail as VerifyEmailNotification;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Modules\Auth\Mail\welcome_mail;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
         $user = Auth::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if ($user->password === 'password') {
+            return response()->json([
+                'message' => 'Your password must be reset.',
+                'reset_url' => route('password.forgot', ['email' => $user->email]),
+            ], 403);
+        }
+        else{
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+    
+            
+    
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
+            
+            if(!$user->hasVerifiedEmail()){
+                return response()->json(['message' => 'Please verify your email address.'],403);
+            }
+    
+            // Generate token
+            $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
+    
+            return response()->json([
+                'user' => $user,
+                'token' => $token,
+            ]);
         }
 
-        if(!$user->hasVerifiedEmail()){
-            return response()->json(['message' => 'Please verify your email address.'],403);
-        }
-
-        // Generate token
-        $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
+        
     
 
 
@@ -49,19 +65,27 @@ class AuthController extends Controller
         
         // Validate the request data
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:auths',
-            'phone' => 'required|string|unique:auths',
-            'address' => 'nullable|text',
-            'city'=> 'nullable|string',
-            'zip'=> 'nullable|integer|max:5',
-            'country'=> 'nullable|string',
-            'company_name'=> 'nullable|string',
-            'company_address'=> 'nullable|string',
-            'company_email'=> 'nullable|string|email',
-            'company_phone'=> 'nullable|integer|max:13',
-            'imageURL'=> 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'password' => 'required|string',
+            'dealer_id'=>'nullable|string',
+            'name'=>'required|string',
+            'email'=>'required|string',
+            'otp'=>'nullable|string',
+            'email_verified_at'=>'nullable|string',
+            'phone'=>'required|string',
+            'street'=>'nullable|string',
+            'state'=>'nullable|string',
+            'city'=>'nullable|string',
+            'zip'=>'nullable|string',
+            'country'=>'nullable|string',
+            'inventory_url'=>'nullable|string',
+            'data_source'=>'nullable|string',
+            'listing_count'=>'nullable|string',
+            'latitude'=>'nullable|string',
+            'longitude'=>'nullable|string',
+            'status'=>'nullable|string',
+            'dealer_type'=>'nullable|string',
+            'imageURL'=>'nullable|string',
+            'password'=>'required|string',
+            'role'=>'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -85,15 +109,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'otp'=>$otp,
             'phone'=> $request->phone,
-            'address'=> $request->address,
-            'city'=> $request->city,
-            'zip'=> $request->zip,
-            'country'=> $request->country,
-            'company_name'=> $request->company_name,
-            'company_address'=> $request->company_address,
-            'company_email'=> $request->company_email,
-            'company_phone'=> $request->company_phone,
-            'imageURL'=> $path,
             'password' => Hash::make($request->password),
         ]);
 
@@ -111,6 +126,8 @@ class AuthController extends Controller
 
         // Optionally generate an API token
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        Mail::to($user->email)->send(new welcome_mail($request->password));
 
         return response()->json([
             'message' => 'User registered successfully. Please verify your email',
@@ -144,5 +161,7 @@ class AuthController extends Controller
             'message' => 'Verified Successfully.',
         ]);
     }
+
+    
 
 }

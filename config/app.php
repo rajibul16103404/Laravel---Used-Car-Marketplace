@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Facade;
+use Modules\Admin\Inventory_Type\InventoryTypeServiceProvider;
 
 return [
 
@@ -225,6 +226,8 @@ return [
         Modules\Admin\Highway_Mpg\HighwayMpgServiceProvider::class,
         Modules\Admin\City_Mpg\CityMpgServiceProvider::class,
         Modules\Admin\Powertrain_Type\PowerTrainTypeServiceProvider::class,
+        Modules\Admin\Inventory_Type\InventoryTypeServiceProvider::class,
+        Modules\Admin\Seller_Type\SellerTypeServiceProvider::class,
     ],
 
     /*

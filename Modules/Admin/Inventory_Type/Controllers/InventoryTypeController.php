@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Admin\Color\ExteriorColor\Controllers;
+namespace Modules\Admin\Inventory_Type\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Modules\Admin\Color\ExteriorColor\Models\ExteriorColor;
+use Modules\Admin\Inventory_Type\Models\InventoryType;
 
-class ExteriorColorController extends Controller
+class InventoryTypeController extends Controller
 {
     public function store(Request $request)
     {
@@ -20,29 +20,29 @@ class ExteriorColorController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $exterior_color = ExteriorColor::create([
+        $inventory_type = InventoryType::create([
             'name' => $request->name,
             'status' => $request->status,
         ]);
 
         return response()->json([
-            'message' => 'New Exterior Color Added Successfully',
-            'data' => $exterior_color,
+            'message' => 'New Inventory Type Added Successfully',
+            'data' => $inventory_type,
         ], status: 201);
     }
 
     public function index(Request $request)
     {
-        // $color = Color::all();
+        // $inventory_type = inventory_type::all();
 
         // return response()->json([
-        //     'message' => 'Colors data retrieved',
-        //     'data' => $color,
+        //     'message' => 'inventory_type data retrieved',
+        //     'data' => $inventory_type,
         // ], 200);
 
         $perPage = $request->input('per_page', 10);
 
-        $data = ExteriorColor::paginate($perPage);
+        $data = InventoryType::paginate($perPage);
 
         return response()->json([
             'pagination' => [
@@ -61,18 +61,18 @@ class ExteriorColorController extends Controller
     public function show($id)
     {
         // Find product by ID
-        $exterior_color = ExteriorColor::find($id);
+        $inventory_type = InventoryType::find($id);
 
         // Check if product exists
-        if (!$exterior_color) {
+        if (!$inventory_type) {
             return response()->json([
-                'message' => 'Exterior Color not found',
+                'message' => 'Inventory Type not found',
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Exterior Color data retrieved successfully',
-            'data' => $exterior_color,
+            'message' => 'Inventory Type data retrieved successfully',
+            'data' => $inventory_type,
         ], 200);
     }
 
@@ -92,42 +92,42 @@ class ExteriorColorController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Find the Exterior Color record
-        $exterior_color = ExteriorColor::find($id);
+        // Find the inventory_type record
+        $inventory_type = InventoryType::find($id);
 
-        if (!$exterior_color) {
-            return response()->json(['message' => 'Exterior Color Not Found'], 404);
+        if (!$inventory_type) {
+            return response()->json(['message' => 'Inventory Type Not Found'], 404);
         }
 
         // Update the record
-        $exterior_color->update([
+        $inventory_type->update([
             'name' => $request->name,
             'status' => $request->status,
         ]);
 
         // Return success response
         return response()->json([
-            'message' => 'Exterior Color Updated Successfully',
-            'data' => $exterior_color,
+            'message' => 'Inventory Type Updated Successfully',
+            'data' => $inventory_type,
         ], 200);
     }
 
 
     public function destroy($id)
     {
-        // Find the Exterior Color record
-        $exterior_color = ExteriorColor::find($id);
+        // Find the inventory_type record
+        $inventory_type = InventoryType::find($id);
 
-        if (!$exterior_color) {
-            return response()->json(['message' => 'Exterior Color Not Found'], 404);
+        if (!$inventory_type) {
+            return response()->json(['message' => 'Inventory Type Not Found'], 404);
         }
 
         // Delete the record
-        $exterior_color->delete();
+        $inventory_type->delete();
 
         // Return success response
         return response()->json([
-            'message' => 'Exterior Color Deleted Successfully',
+            'message' => 'Inventory Type Deleted Successfully',
         ], 200);
     }
 

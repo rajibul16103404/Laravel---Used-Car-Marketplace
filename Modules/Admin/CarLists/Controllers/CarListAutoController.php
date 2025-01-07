@@ -5,10 +5,12 @@ namespace Modules\Admin\CarLists\Controllers;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
 use Modules\Admin\CarLists\Models\Carlist;
 use Modules\Admin\CarModel\Models\Carmodel;
+use Modules\Admin\City_Mpg\Models\CityMpg;
 use Modules\Admin\Color\ExteriorColor\Models\ExteriorColor;
 use Modules\Admin\Color\InteriorColor\Models\InteriorColor;
 use Modules\Admin\Cylinders\Models\Cylinder;
@@ -18,12 +20,15 @@ use Modules\Admin\Engine\Models\Engine;
 use Modules\Admin\Engine_Block\Models\EngineBlock;
 use Modules\Admin\Engine_Size\Models\EngineSize;
 use Modules\Admin\Fuel_Type\Models\Fuel_type;
+use Modules\Admin\Highway_Mpg\Models\HighwayMpg;
+use Modules\Admin\Inventory_Type\Models\InventoryType;
 use Modules\Admin\MadeIn\Models\MadeIn;
 use Modules\Admin\Make\Models\Make;
 use Modules\Admin\Overall_Height\Models\OverallHeight;
 use Modules\Admin\Overall_Length\Models\OverallLength;
 use Modules\Admin\Overall_Width\Models\OverallWidth;
 use Modules\Admin\Powertrain_Type\Models\PowertrainType;
+use Modules\Admin\Seller_Type\Models\SellerType;
 use Modules\Admin\Std_seating\Models\StdSeating;
 use Modules\Admin\Transmission\Models\Transmission;
 use Modules\Admin\Trim\Models\Trim;
@@ -36,440 +41,313 @@ class CarListAutoController extends Controller
 {
     public function index()
     {
-        $apiKey = 'VB4mP3G5o2E0kKNFUuviGLNqe5Mxb5NE'; // Replace with your API key
-        $url = "https://mc-api.marketcheck.com/v2/search/car/active?api_key={$apiKey}";
+
+
+        // Fetch From API 1
+        $apiKey = 'dbzXnPErs9CTXncoAHDAkWQovwHzgmua'; // Replace with your API key
+        // $apiKey = 'KHOUDaRN4thXldtn7PMMhtrsXJASlh1y'; // Replace with your API key
+        $baseUrl = "https://mc-api.marketcheck.com/v2/search/car/active";
+        $start = 0;
+        $rows = 25; // Number of records per page
+        $totalFetched = 0;
+        
+
+        
 
         try {
+            UP:
+            // $currentPage =1;
+            $url = "{$baseUrl}?api_key={$apiKey}&start={$start}&rows={$rows}";
+
             // Fetch data from the API
-            $response = Http::get($url);
+            // do{
+                $response = Http::timeout(300)->get($url);
             // dd($response);
+            Log::info($response);
 
             if ($response->successful()) {
                 $data = $response->json();
-                // $insert=Carlist::create($data);
-                // // dd($data);
-                // if($insert){
-                //     return response([
-                //         'message'=>'data fetch done',
-                //     ], 200);
-                // }
+
+                // dd($data);
 
                 // Check if data is valid
                 if (isset($data['listings']) && is_array($data['listings'])) {
                     foreach ($data['listings'] as $car) {
                         $existingCar = Carlist::where('car_id', $car['id'] ?? null)->orWhere('vin', $car['vin'] ?? null)->first();
 
-
-                        // Exterior Color
-                        if(in_array(['exterior_color'], $car)){
-                            $exterior_color = ExteriorColor::where('name', $car['exterior_color'] ?? null)->first();
-                            // dd($car['exterior_color']);
-                            if(!$exterior_color)
-                            {
-                                ExteriorColor::Create([
-                                    'name'=>$car['exterior_color'] ?? null,
-                                ]);
-                            }
-
-                            $exterior_colorData = ExteriorColor::where('name', $car['exterior_color'])->value('id');
-                        }else{
-                            $exterior_colorData=null;
+                        // Fetch or create `ExteriorColor`
+                        $exterior_colorData = null;
+                        if (!empty($car['exterior_color'])) {
+                            $exterior_color = ExteriorColor::firstOrCreate(
+                                ['name' => $car['exterior_color']]
+                            );
+                            $exterior_colorData = $exterior_color->id;
                         }
 
+                        // Fetch or create `InteriorColor`
+                        $interior_colorData = null;
+                        if (!empty($car['interior_color'])) {
+                            $interior_color = InteriorColor::firstOrCreate(
+                                ['name' => $car['interior_color']]
+                            );
+                            $interior_colorData = $interior_color->id;
+                        }
+
+
+                        // Fetch or create `InventoryType`
+                        $inventory_typeData = null;
+                        if (!empty($car['inventory_type'])) {
+                            $inventory_type = InventoryType::firstOrCreate(
+                                ['name' => $car['inventory_type']]
+                            );
+                            $inventory_typeData = $inventory_type->id;
+                        }
+
+
+                        // Fetch or create `SellerType`
+                        $seller_typeData = null;
+                        if (!empty($car['seller_type'])) {
+                            $seller_type = SellerType::firstOrCreate(
+                                ['name' => $car['seller_type']]
+                            );
+                            $seller_typeData = $seller_type->id;
+                        }
+
+
+                        // Fetch or create `Year`
+                        $yearData = null;
+                        if (!empty($car['build']['year'])) {
+                            $year = Year::firstOrCreate(
+                                ['name' => $car['build']['year']]
+                            );
+                            $yearData = $year->id;
+                        }
+
+
+                        // Fetch or create `Make`
+                        $makeData = null;
+                        if (!empty($car['build']['make'])) {
+                            $make = Make::firstOrCreate(
+                                ['name' => $car['build']['make']]
+                            );
+                            $makeData = $make->id;
+                        }
+
+                        // Fetch or create `Model`
+                        $modelData = null;
+                        if (!empty($car['build']['model'])) {
+                            $model = Carmodel::firstOrCreate(
+                                ['name' => $car['build']['model']]
+                            );
+                            $modelData = $model->id;
+                        }
                         
 
-
-
-                        // Interior Color
-                        if(in_array(['interior_color'], $car)){
-                            $interior_color = InteriorColor::where('name', $car['interior_color'] ?? null)->first();
-                            // dd($car);
-                            if(!$interior_color)
-                            {
-                                InteriorColor::Create([
-                                    'name'=>$car['interior_color'] ?? null,
-                                ]);
-                            }
-
-                            $interior_colorData = InteriorColor::where('name', $car['interior_color'])->value('id');
-                        }else{
-                            $interior_colorData=null;
+                        // Fetch or create `Trim`
+                        $trimData = null;
+                        if (!empty($car['build']['trim'])) {
+                            $trim = Trim::firstOrCreate(
+                                ['name' => $car['build']['trim']]
+                            );
+                            $trimData = $trim->id;
                         }
 
-                        if(in_array(['build'], $car))
-                        {
-                            // Year
-                            if(in_array(['year'], $car)){
-                                $year = Year::where('name', $car['build']['year'] ?? null)->first();
-                                // dd($car);
-                                if(!$year)
-                                {
-                                    Year::Create([
-                                        'name'=>$car['build']['year'] ?? null,
-                                    ]);
-                                }
 
-                                $yearData = Year::where('name', $car['build']['year'])->value('id');
-                            }else{
-                                $yearData=null;
-                            }
-
-                            // Make
-                            if(in_array(['make'], $car)){
-                                $car_make = Make::where('name', $car['build']['make'] ?? null)->first();
-                                // dd($car);
-                                if(!$car_make)
-                                {
-                                    Make::Create([
-                                        'name'=>$car['build']['make'] ?? null,
-                                    ]);
-                                }
-
-                                $CarMakeData = Make::where('name', $car['build']['make'])->value('id');
-                            }else{
-                                $CarMakeData=null;
-                            }
-
-                            // Model
-                            if(in_array(['model'], $car)){
-                                $car_model = Carmodel::where('name', $car['build']['model'] ?? null)->first();
-                                // dd($car);
-                                if(!$car_model)
-                                {
-                                    Carmodel::Create([
-                                        'name'=>$car['build']['model'] ?? null,
-                                    ]);
-                                }
-
-                                $CarModelData = Carmodel::where('name', $car['build']['model'])->value('id');
-                            }else{
-                                $CarModelData=null;
-                            }
+                        // Fetch or create `Version`
+                        $versionData = null;
+                        if (!empty($car['build']['version'])) {
+                            $version = Version::firstOrCreate(
+                                ['name' => $car['build']['version']]
+                            );
+                            $versionData = $version->id;
+                        }
 
 
-                            // Trim
-                            if(in_array(['trim'], $car)){
-                                $trim = Trim::where('name', $car['build']['trim'] ?? null)->first();
-                                // dd($car);
-                                if(!$trim)
-                                {
-                                    Trim::Create([
-                                        'name'=>$car['build']['trim'] ?? null,
-                                    ]);
-                                }
-
-                                $TrimData = Trim::where('name', $car['build']['trim'])->value('id');
-                            }else{
-                                $TrimData=null;
-                            }
+                        // Fetch or create `Body_type`
+                        $body_typeData = null;
+                        if (!empty($car['build']['body_type'])) {
+                            $body_type = Body_Type::firstOrCreate(
+                                ['name' => $car['build']['body_type']]
+                            );
+                            $body_typeData = $body_type->id;
+                        }
 
 
-                            // Version
-                            if(in_array(['version'],$car)){
-                                $version = Version::where('name', $car['build']['version'] ?? null)->first();
-                                // dd($car);
-                                if(!$version)
-                                {
-                                    Version::Create([
-                                        'name'=>$car['build']['version'] ?? null,
-                                    ]);
-                                }
-
-                                $VersionData = Trim::where('name', $car['build']['version'])->value('id');
-                            }else{
-                                $VersionData=null;
-                            }
+                        // Fetch or create `Body_subtype`
+                        $body_subtypeData = null;
+                        if (!empty($car['build']['body_subtype'])) {
+                            $body_subtype = BodySubType::firstOrCreate(
+                                ['name' => $car['build']['body_subtype']]
+                            );
+                            $body_subtypeData = $body_subtype->id;
+                        }
 
 
-                            // Body Type
-                            if(in_array(['body_type'],$car)){
-                                $body_type = Body_Type::where('name', $car['build']['body_type'] ?? null)->first();
-                                // dd($car);
-                                if(!$body_type)
-                                {
-                                    Body_Type::Create([
-                                        'name'=>$car['build']['body_type'] ?? null,
-                                    ]);
-                                }
-
-                                $BodyTypeData = Body_Type::where('name', $car['build']['body_type'])->value('id');
-                            }else{
-                                $BodyTypeData=null;
-                            }
+                        // Fetch or create `Vehicle_type`
+                        $vehicle_typeData = null;
+                        if (!empty($car['build']['vehicle_type'])) {
+                            $vehicle_type = VehicleType::firstOrCreate(
+                                ['name' => $car['build']['vehicle_type']]
+                            );
+                            $vehicle_typeData = $vehicle_type->id;
+                        }
 
 
-                            // Body Sub Type
-                            if(in_array(['body_subtype'], $car['build'])){
-                                $body_subtype = BodySubType::where('name', $car['build']['body_subtype'] ?? null)->first();
-                                // dd($body_subtype);
-                                if(!$body_subtype)
-                                {
-                                    BodySubType::Create([
-                                        'name'=>$car['build']['body_subtype'] ?? null,
-                                    ]);
-                                }
-
-                                $BodySubTypeData = BodySubType::where('name', $car['build']['body_subtype'])->value('id');
-                            }else{
-                                $BodySubTypeData=null;
-                            }
+                        // Fetch or create `Transmission`
+                        $transmissionData = null;
+                        if (!empty($car['build']['transmission'])) {
+                            $transmission = Transmission::firstOrCreate(
+                                ['name' => $car['build']['transmission']]
+                            );
+                            $transmissionData = $transmission->id;
+                        }
 
 
-                            // Vehicle Type
-                            if(in_array(['vehicle_type'], $car)){
-                                $vehicle_type = VehicleType::where('name', $car['build']['vehicle_type'] ?? null)->first();
-                                // dd($car);
-                                if(!$vehicle_type)
-                                {
-                                    VehicleType::Create([
-                                        'name'=>$car['build']['vehicle_type'] ?? null,
-                                    ]);
-                                }
-
-                                $VehicleTypeData = VehicleType::where('name', $car['build']['vehicle_type'])->value('id');
-                            }else{
-                                $VehicleTypeData=null;
-                            }
+                        // Fetch or create `Drivetrain`
+                        $drivetrainData = null;
+                        if (!empty($car['build']['drivetrain'])) {
+                            $drivetrain = DriveTrain::firstOrCreate(
+                                ['name' => $car['build']['drivetrain']]
+                            );
+                            $drivetrainData = $drivetrain->id;
+                        }
 
 
-                            // Transmission
-                            if(in_array(['transmission'], $car)){
-                                $transmission = Transmission::where('name', $car['build']['transmission'] ?? null)->first();
-                                // dd($car);
-                                if(!$transmission)
-                                {
-                                    Transmission::Create([
-                                        'name'=>$car['build']['transmission'] ?? null,
-                                    ]);
-                                }
-
-                                $TransmissionData = Transmission::where('name', $car['build']['transmission'])->value('id');
-                            }else{
-                                $TransmissionData=null;
-                            }
+                        // Fetch or create `Fuel_type`
+                        $fuel_typeData = null;
+                        if (!empty($car['build']['fuel_type'])) {
+                            $fuel_type = Fuel_type::firstOrCreate(
+                                ['name' => $car['build']['fuel_type']]
+                            );
+                            $fuel_typeData = $fuel_type->id;
+                        }
 
 
-                            // Drive Train
-                            if(in_array(['drive_train'], $car['build'])){
-                                $drive_train = DriveTrain::where('name', $car['build']['drive_train'] ?? null)->first();
-                                // dd($car);
-                                if(!$drive_train)
-                                {
-                                    DriveTrain::Create([
-                                        'name'=>$car['build']['drive_train'] ?? null,
-                                    ]);
-                                }
-
-                                $drivetrainData = DriveTrain::where('name', $car['build']['drive_train'])->value('id');
-                            }else{
-                                $drivetrainData=null;
-                            }
+                        // Fetch or create `Engine`
+                        $engineData = null;
+                        if (!empty($car['build']['engine'])) {
+                            $engine = Engine::firstOrCreate(
+                                ['name' => $car['build']['engine']]
+                            );
+                            $engineData = $engine->id;
+                        }
 
 
-                            // Fuel Type
-                            if(in_array(['fuel_type'], $car)){
-                                $fuel_type = Fuel_type::where('name', $car['build']['fuel_type'] ?? null)->first();
-                                // dd($car);
-                                if(!$fuel_type)
-                                {
-                                    Fuel_type::Create([
-                                        'name'=>$car['build']['fuel_type'] ?? null,
-                                    ]);
-                                }
-
-                                $fueltypeData = Fuel_type::where('name', $car['build']['fuel_type'])->value('id');
-                            }else{
-                                $fueltypeData=null;
-                            }
+                        // Fetch or create `Engine_size`
+                        $engine_sizeData = null;
+                        if (!empty($car['build']['engine_size'])) {
+                            $engine_size = EngineSize::firstOrCreate(
+                                ['name' => $car['build']['engine_size']]
+                            );
+                            $engine_sizeData = $engine_size->id;
+                        }
 
 
-                            // Engine
-                            if(in_array(['engine'], $car)){
-                                $engine = Engine::where('name', $car['build']['engine'] ?? null)->first();
-                                // dd($car);
-                                if(!$engine)
-                                {
-                                    Engine::Create([
-                                        'name'=>$car['build']['engine'] ?? null,
-                                    ]);
-                                }
-
-                                $engineData = Engine::where('name', $car['build']['engine'])->value('id');
-                            }else{
-                                $engineData=null;
-                            }
+                        // Fetch or create `Engine_block`
+                        $engine_blockData = null;
+                        if (!empty($car['build']['engine_block'])) {
+                            $engine_block = EngineBlock::firstOrCreate(
+                                ['name' => $car['build']['engine_block']]
+                            );
+                            $engine_blockData = $engine_block->id;
+                        }
 
 
-                            // Engine Size
-                            if(in_array(['engine_size'], $car)){
-                                $engine_size = EngineSize::where('name', $car['build']['engine_size'] ?? null)->first();
-                                // dd($car);
-                                if(!$engine_size)
-                                {
-                                    EngineSize::Create([
-                                        'name'=>$car['build']['engine_size'] ?? null,
-                                    ]);
-                                }
+                        // Fetch or create `Doors`
+                        $doorsData = null;
+                        if (!empty($car['build']['doors'])) {
+                            $doors = Door::firstOrCreate(
+                                ['name' => $car['build']['doors']]
+                            );
+                            $doorsData = $doors->id;
+                        }
 
-                                $enginesizeData = EngineSize::where('name', $car['build']['engine_size'])->value('id');
-                            }else{
-                                $enginesizeData=null;
-                            }
-
-
-                            // Engine Block
-                            if(in_array(['engine_block'], $car)){
-                                $engine_block = EngineBlock::where('name', $car['build']['engine_block'] ?? null)->first();
-                                // dd($car);
-                                if(!$engine_block)
-                                {
-                                    EngineBlock::Create([
-                                        'name'=>$car['build']['engine_block'] ?? null,
-                                    ]);
-                                }
-
-                                $engineblockData = EngineBlock::where('name', $car['build']['engine_block'])->value('id');
-                            }else{
-                                $engineblockData=null;
-                            }
+                        // Fetch or create `Cylinders`
+                        $cylindersData = null;
+                        if (!empty($car['build']['cylinders'])) {
+                            $cylinders = Cylinder::firstOrCreate(
+                                ['name' => $car['build']['cylinders']]
+                            );
+                            $cylindersData = $cylinders->id;
+                        }
 
 
-                            // Door
-                            if(in_array(['doors'], $car['build'])){
-                                $door = Door::where('name', $car['build']['doors'] ?? null)->first();
-                                // dd($car);
-                                if(!$door)
-                                {
-                                    Door::Create([
-                                        'name'=>$car['build']['doors'] ?? null,
-                                    ]);
-                                }
+                        // Fetch or create `Made_in`
+                        $made_inData = null;
+                        if (!empty($car['build']['made_in'])) {
+                            $made_in = MadeIn::firstOrCreate(
+                                ['name' => $car['build']['made_in']]
+                            );
+                            $made_inData = $made_in->id;
+                        }
 
-                                $doorData = Door::where('name', $car['build']['door'])->value('id');
-                            }else{
-                                $doorData=null;
-                            }
-                            
-
-                            // Cylinder
-                            if(in_array(['cylinders'], $car)){
-                                $cylinder = Cylinder::where('name', $car['build']['cylinders'] ?? null)->first();
-                                // dd($car);
-                                if(!$cylinder)
-                                {
-                                    Cylinder::Create([
-                                        'name'=>$car['build']['cylinders'] ?? null,
-                                    ]);
-                                }
-
-                                $cylinderData = Door::where('name', $car['build']['cylinders'])->value('id');
-                            }else{
-                                $cylinderData=null;
-                            }
-
-                            
-
-                            // Made In
-                            if(in_array(['made_in'], $car)){
-                                $made_in = MadeIn::where('name', $car['build']['made_in'] ?? null)->first();
-                                // dd($car);
-                                if(!$made_in)
-                                {
-                                    MadeIn::Create([
-                                        'name'=>$car['build']['made_in'] ?? null,
-                                    ]);
-                                }
-
-                                $madeinData = MadeIn::where('name', $car['build']['made_in'])->value('id');
-                            }else{
-                                $madeinData=null;
-                            }
+                        // Fetch or create `Overall_height`
+                        $overall_heightData = null;
+                        if (!empty($car['build']['overall_height'])) {
+                            $overall_height = OverallHeight::firstOrCreate(
+                                ['name' => $car['build']['overall_height']]
+                            );
+                            $overall_heightData = $overall_height->id;
+                        }
 
 
-                            // Overall Height
-                            if(in_array(['overall_height'], $car)){
-                                $overall_height = OverallHeight::where('name', $car['build']['overall_height'] ?? null)->first();
-                                // dd($car);
-                                if(!$overall_height)
-                                {
-                                    OverallHeight::Create([
-                                        'name'=>$car['build']['overall_height'] ?? null,
-                                    ]);
-                                }
-
-                                $overallheightData = OverallHeight::where('name', $car['build']['overall_height'])->value('id');
-                            }else{
-                                $overallheightData=null;
-                            }
+                        // Fetch or create `Overall_length`
+                        $overall_lengthData = null;
+                        if (!empty($car['build']['overall_length'])) {
+                            $overall_length = OverallLength::firstOrCreate(
+                                ['name' => $car['build']['overall_length']]
+                            );
+                            $overall_lengthData = $overall_length->id;
+                        }
 
 
-                            // Overall Length
-                            if(in_array(['overall_length'], $car)){
-                                $overall_length = Overalllength::where('name', $car['build']['overall_length'] ?? null)->first();
-                                // dd($car);
-                                if(!$overall_length)
-                                {
-                                    OverallLength::Create([
-                                        'name'=>$car['build']['overall_length'] ?? null,
-                                    ]);
-                                }
-
-                                $overalllengthData = OverallLength::where('name', $car['build']['overall_width'])->value('id');
-                            }else{
-                                $overalllengthData=null;
-                            }
+                        // Fetch or create `Overall_width`
+                        $overall_widthData = null;
+                        if (!empty($car['build']['overall_width'])) {
+                            $overall_width = OverallWidth::firstOrCreate(
+                                ['name' => $car['build']['overall_width']]
+                            );
+                            $overall_widthData = $overall_width->id;
+                        }
 
 
-                            // Overall Width
-                            if(in_array(['overall_width'], $car)){
-                                $overall_width = OverallWidth::where('name', $car['build']['overall_width'] ?? null)->first();
-                                // dd($car);
-                                if(!$overall_width)
-                                {
-                                    OverallWidth::Create([
-                                        'name'=>$car['build']['overall_length'] ?? null,
-                                    ]);
-                                }
-
-                                $overallwidthData = OverallWidth::where('name', $car['build']['overall_width'])->value('id');
-                            }else{
-                                $overallwidthData=null;
-                            }
+                        // Fetch or create `Std_seating`
+                        $std_seatingData = null;
+                        if (!empty($car['build']['std_seating'])) {
+                            $std_seating = StdSeating::firstOrCreate(
+                                ['name' => $car['build']['std_seating']]
+                            );
+                            $std_seatingData = $std_seating->id;
+                        }
 
 
-                            // Std Seating
-                            if(in_array(['std_seating'], $car)){
-                                $std_seating = StdSeating::where('name', $car['build']['std_seating'] ?? null)->first();
-                                // dd($car);
-                                if(!$std_seating)
-                                {
-                                    StdSeating::Create([
-                                        'name'=>$car['build']['std_seating'] ?? null,
-                                    ]);
-                                }
-
-                                $std_seatingData = StdSeating::where('name', $car['build']['std_seating'])->value('id');
-                            }else{
-                                $std_seatingData=null;
-                            }
+                        // Fetch or create `Highway_mpg`
+                        $highway_mpgData = null;
+                        if (!empty($car['build']['highway_mpg'])) {
+                            $highway_mpg = HighwayMpg::firstOrCreate(
+                                ['name' => $car['build']['highway_mpg']]
+                            );
+                            $highway_mpgData = $highway_mpg->id;
+                        }
 
 
+                        // Fetch or create `City_mpg`
+                        $city_mpgData = null;
+                        if (!empty($car['build']['city_mpg'])) {
+                            $city_mpg = CityMpg::firstOrCreate(
+                                ['name' => $car['build']['city_mpg']]
+                            );
+                            $city_mpgData = $city_mpg->id;
+                        }
 
-                            // PowerTrain Type
-                            if(in_array(['powertrain_type'], $car)){
-                                $powertrain_type = PowertrainType::where('name', $car['build']['powertrain_type'] ?? null)->first();
-                                // dd($car);
-                                if(!$powertrain_type)
-                                {
-                                    PowertrainType::Create([
-                                        'name'=>$car['build']['powertrain_type'] ?? null,
-                                    ]);
-                                }
 
-                                $powertrain_typeData = PowertrainType::where('name', $car['build']['powertrain_type'])->value('id');
-                            }else{
-                                $powertrain_typeData=null;
-                            }
+                        // Fetch or create `Powertrain_type`
+                        $powertrain_typeData = null;
+                        if (!empty($car['build']['powertrain_type'])) {
+                            $powertrain_type = PowertrainType::firstOrCreate(
+                                ['name' => $car['build']['powertrain_type']]
+                            );
+                            $powertrain_typeData = $powertrain_type->id;
                         }
 
                         
@@ -497,8 +375,8 @@ class CarListAutoController extends Controller
                                             'dom_180'=>$car['dom_180']??null,
                                             'dom_active'=>$car['dom_active']??null,
                                             'dos_active'=>$car['dos_active']??null,
-                                            'seller_type'=>$car['seller_type']??null,
-                                            'inventory_type'=>$car['inventory_type']??null,
+                                            'seller_type'=>$seller_type??null,
+                                            'inventory_type'=>$inventory_type??null,
                                             'stock_no'=>$car['stock_no']??null,
                                             'last_seen_at'=>$car['last_seen_at']??null,
                                             'last_seen_at_date'=>$car['last_seen_at_date']??null,
@@ -521,25 +399,25 @@ class CarListAutoController extends Controller
                                             // 'photo_links'=>$car['media']['photo_links'],
                                             'dealer_id'=>$car['dealer']['id'],
                                             'year'=>$yearData??null,
-                                            'make'=>$CarMakeData??null,
-                                            'model'=>$CarModelData??null,
-                                            'trim'=>$TrimData??null,
-                                            'version'=>$VersionData??null,
-                                            'body_type'=>$BodyTypeData??null,
-                                            'body_subtype'=>$BodySubTypeData??null,
-                                            'vehicle_type'=>$VehicleTypeData??null,
-                                            'transmission'=>$TransmissionData??null,
+                                            'make'=>$makeData??null,
+                                            'model'=>$modelData??null,
+                                            'trim'=>$trimData??null,
+                                            'version'=>$versionData??null,
+                                            'body_type'=>$body_typeData??null,
+                                            'body_subtype'=>$body_subtypeData??null,
+                                            'vehicle_type'=>$vehicle_typeData??null,
+                                            'transmission'=>$transmissionData??null,
                                             'drivetrain'=>$drivetrainData??null,
-                                            'fuel_type'=>$fueltypeData??null,
+                                            'fuel_type'=>$fuel_typeData??null,
                                             'engine'=>$engineData??null,
-                                            'engine_size'=>$enginesizeData??null,
-                                            'engine_block'=>$engineblockData??null,
-                                            'doors'=>$doorData??null,
-                                            'cylinders'=>$cylinderData??null,
-                                            'made_in'=>$madeinData??null,
-                                            'overall_height'=>$overallheightData??null,
-                                            'overall_length'=>$overalllengthData??null,
-                                            'overall_width'=>$overallwidthData??null,
+                                            'engine_size'=>$engine_sizeData??null,
+                                            'engine_block'=>$engine_blockData??null,
+                                            'doors'=>$doorsData??null,
+                                            'cylinders'=>$cylindersData??null,
+                                            'made_in'=>$made_inData??null,
+                                            'overall_height'=>$overall_heightData??null,
+                                            'overall_length'=>$overall_lengthData??null,
+                                            'overall_width'=>$overall_widthData??null,
                                             'std_seating'=>$std_seatingData??null,
                                             'highway_mpg'=>$highway_mpgData??null,
                                             'city_mpg'=>$city_mpgData??null,
@@ -547,76 +425,27 @@ class CarListAutoController extends Controller
                                         ]);
                         }
                     }
-
-                    return response()->json(['message' => 'Data fetched and stored successfully.']);
-                } else {
-                    return response()->json(['message' => 'Invalid data format from API.'], 400);
-                }
-            } else {
-                return response()->json(['message' => 'Failed to fetch data from API.'], $response->status());
-            }
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
-        }
-    }
-
-    public function get_dealer(){
-        $apiKey = 'VB4mP3G5o2E0kKNFUuviGLNqe5Mxb5NE'; // Replace with your API key
-        $url = "https://mc-api.marketcheck.com/v2/dealers/car?api_key=$apiKey";
-
-        try {
-            // Fetch data from the API
-            $response = Http::get($url);
-            // dd($response);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                // $insert=VIN::create($data);
-                // // dd($data);
-                // if($insert){
-                //     return response([
-                //         'message'=>'data fetch done',
-                //     ], 200);
+                    $start+=25;
+                    goto UP;
+                    // Update pagination variables
+                    // $totalFetched += count($data['listings']);
+                    // $start += $rows;
+                    return response()->json(['message' => " Data Stored Successfully."]);
+                } 
+                // else {
+                //     break;
                 // }
-
-                // Check if data is valid
-                if (isset($data['dealers']) && is_array($data['dealers'])) {
-                    foreach ($data['dealers'] as $dealer) {
-                        
-                        $existingDealer = Auth::where('email', $dealer['seller_email'] ?? null)->orWhere('phone', $dealer['seller_phone'] ?? null)->first();
-                        if(!$existingDealer){
-                        // dd($dealer['street'], $dealer['seller_phone'],$dealer['seller_name']);
-                        Auth::Create([
-                            'dealer_id' => $dealer['id'] ?? null,
-                            'name' => $dealer['seller_name'] ?? null,
-                            'email' => $dealer['seller_email'] ?? null, // Fixed typo here
-                            'phone' => $dealer['seller_phone'] ?? null,
-                            'street' => $dealer['street'] ?? null,
-                            'state' => $dealer['state'] ?? null,
-                            'city' => $dealer['city'] ?? null,
-                            'zip' => $dealer['zip'] ?? null,
-                            'country' => $dealer['country'] ?? null,
-                            'inventory_url' => $dealer['inventory_url'] ?? null,
-                            'data_source' => $dealer['data_source'] ?? null,
-                            'listing_count' => $dealer['listing_count'] ?? null,
-                            'latitude' => $dealer['latitude'] ?? null,
-                            'longitude' => $dealer['longitude'] ?? null,
-                            'status' => $dealer['status'] ?? null,
-                            'dealer_type' => $dealer['dealer_type'] ?? null,
-                            'created_at' => $dealer['created_at'] ?? null,
-                        ]);
-                    }
-                    }
-                    return response()->json(['message' => 'Data fetched and stored successfully.']);
-                } else {
-                    return response()->json(['message' => 'Invalid data format from API.'], 400);
-                }
             } else {
                 return response()->json(['message' => 'Failed to fetch data from API.'], $response->status());
             }
+            // }while (isset($data['listings']) && count($data['listings']) > 0);
+            // return response()->json(['message' => "Fetched and stored  records successfully."]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
-    }
 
+    }
 }
+
+
+
