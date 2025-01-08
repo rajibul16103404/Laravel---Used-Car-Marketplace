@@ -4,6 +4,7 @@ namespace Modules\Admin\CarLists\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Admin\CartItem\Models\Cart;
 
 class Carlist extends Model
 {
@@ -84,4 +85,8 @@ class Carlist extends Model
     //     'scraped_at', 'first_seen_at', 'price_change_percent', 'ref_price', 'ref_miles',
     //     'source', 'in_transit', 'media', 'dealer', 'build'
     // ];
+
+    public function cartItems(){
+        return $this->hasMany(Cart::class);
+    }
 }

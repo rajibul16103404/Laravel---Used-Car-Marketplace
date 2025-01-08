@@ -228,6 +228,7 @@ return [
         Modules\Admin\Powertrain_Type\PowerTrainTypeServiceProvider::class,
         Modules\Admin\Inventory_Type\InventoryTypeServiceProvider::class,
         Modules\Admin\Seller_Type\SellerTypeServiceProvider::class,
+        Modules\Admin\CartItem\CarItemServiceProvider::class,
     ],
 
     /*

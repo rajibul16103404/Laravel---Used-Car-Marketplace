@@ -150,32 +150,71 @@ class CarListController extends Controller
         ->join('makes','carlists.make','=','makes.id')
         ->join('carmodels','carlists.model','=','carmodels.id');
 
+        // if ($request->filled('')) {
+        //     $qry->orderBy('carlists.created_at', 'desc');
+        // }
+
         if($request->filled('heading')){
             $qry->where('carlists.heading', 'LIKE', '%' . $request->heading . '%');
         }
 
         if($request->filled('year')){
-            $qry->where('years.name', $request->year);
+            $qry->where('years.name', 'LIKE', '%' . $request->year . '%');
         }
         
         if($request->filled(key: 'make')){
-            $qry->where('makes.name', $request->make);
+            $qry->where('makes.name', 'LIKE', '%' . $request->make . '%');
         }
 
         if($request->filled('model')){
-            $qry->where('carmodels.name', $request->model);
+            $qry->where('carmodels.name', 'LIKE', '%' . $request->model . '%');
         }
 
         if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('year', 'desc');
+            $qry->orderBy('years.name', 'asc');
         }
         if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('year', 'asc');
+            $qry->orderBy('years.name', 'desc');
         }
+
+        if ($request->filled('sortField') && $request->input('sortField') === 'make' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
+            $qry->orderBy('makes.name', 'asc');
+        }
+        if ($request->filled('sortField') && $request->input('sortField') === 'make' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
+            $qry->orderBy('makes.name', 'desc');
+        }
+
+        if ($request->filled('sortField') && $request->input('sortField') === 'model' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
+            $qry->orderBy('carmodels.name', 'asc');
+        }
+        if ($request->filled('sortField') && $request->input('sortField') === 'model' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
+            $qry->orderBy('carmodels.name', 'desc');
+        }
+
+        if ($request->filled('sortField') && $request->input('sortField') === 'price' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
+            $qry->orderBy('price', 'asc');
+        }
+        if ($request->filled('sortField') && $request->input('sortField') === 'price' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
+            $qry->orderBy('price', 'desc');
+        }
+
+        if ($request->filled('sortField') && $request->input('sortField') === 'createdAt' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
+            $qry->orderBy('created_at', 'asc')->orderBy('carlists.id', 'asc');
+        }
+        if ($request->filled('sortField') && $request->input('sortField') === 'createdAt' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
+            $qry->orderBy('created_at', 'desc')->orderBy('carlists.id', 'desc');
+        }
+
+        // if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
+        //     $qry->orderBy('year', 'desc');
+        // }
+        // if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
+        //     $qry->orderBy('year', 'asc');
+        // }
         
     
         // Get paginated data
-        $data = $qry->select('carlists.*')->paginate($perPage);
+        $data = $qry->select('carlists.*')->orderBy('carlists.created_at', 'desc')->orderBy('carlists.id', 'desc')->paginate($perPage);
     
         // Add the corresponding year data for each car
         $items = $data->items();

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Body_Subtype\Controllers\BodySubTypeController;
 use Modules\Admin\Body_Type\Controllers\Body_TypeController;
+use Modules\Admin\CartItem\Controllers\CartController;
 use Modules\Admin\CarLists\Controllers\CarListAutoController;
 use Modules\Admin\CarLists\Controllers\CarListController;
 use Modules\Admin\CarLists\Controllers\VINController;
@@ -578,6 +579,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
             Route::put('/{id}', [CarListController::class, 'update'])->name('update');
         });
+
+
+        // Add to Cart
+        Route::prefix('/cart')->group(function(){
+            Route::get('/', [CartController::class, 'index']);
+            Route::post('/', [CartController::class, 'add']);
+            Route::post('/delete', [CartController::class, 'remove']);
+        });
+        
 
 
         Route::prefix('/user')->group(function(){
