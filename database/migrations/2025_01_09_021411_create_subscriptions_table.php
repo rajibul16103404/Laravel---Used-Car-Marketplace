@@ -13,9 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('auths', function (Blueprint $table) {
-            $table->integer('role')->default(0);
-            $table->integer('verified')->default(0);
+        Schema::create('subscriptions', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->integer('amount');
+            $table->tinyInteger('status')->default(1);
+            $table->timestamps();
         });
     }
 
@@ -26,8 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('auths', function (Blueprint $table) {
-            $table->dropColumn('role');
-        });
+        Schema::dropIfExists('subscriptions');
     }
 };

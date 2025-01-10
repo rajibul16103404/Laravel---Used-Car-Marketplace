@@ -22,12 +22,14 @@ use Modules\Admin\Engine_Block\Models\EngineBlock;
 use Modules\Admin\Engine_Size\Models\EngineSize;
 use Modules\Admin\Fuel_Type\Models\Fuel_type;
 use Modules\Admin\Highway_Mpg\Models\HighwayMpg;
+use Modules\Admin\Inventory_Type\Models\InventoryType;
 use Modules\Admin\MadeIn\Models\MadeIn;
 use Modules\Admin\Make\Models\Make;
 use Modules\Admin\Overall_Height\Models\OverallHeight;
 use Modules\Admin\Overall_Length\Models\OverallLength;
 use Modules\Admin\Overall_Width\Models\OverallWidth;
 use Modules\Admin\Powertrain_Type\Models\PowertrainType;
+use Modules\Admin\Seller_Type\Models\SellerType;
 use Modules\Admin\Std_seating\Models\StdSeating;
 use Modules\Admin\Transmission\Models\Transmission;
 use Modules\Admin\Trim\Models\Trim;
@@ -262,6 +264,8 @@ class CarListController extends Controller
 
         if($car_list)
         {
+            $inventory_type = InventoryType::find($car_list->inventory_type);
+            $seller_type = SellerType::find($car_list->seller_type);
             $year = Year::find($car_list->year);
             $exterior_color = ExteriorColor::find($car_list->exterior_color);
             $interior_color = InteriorColor::find($car_list->interior_color);
@@ -301,6 +305,8 @@ class CarListController extends Controller
             'message' => 'Car data retrieved successfully',
             'data' => [
                 'car'=>$car_list,
+                'inventory_type' => $inventory_type,
+                'seller_type' => $seller_type,
                 'exterior_color' => $exterior_color,
                 'interior_color' => $interior_color,
                 'year' => $year,

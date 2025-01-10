@@ -10,8 +10,8 @@ use Modules\Admin\Body_Type\Controllers\Body_TypeController;
 use Modules\Admin\CartItem\Controllers\CartController;
 use Modules\Admin\CarLists\Controllers\CarListAutoController;
 use Modules\Admin\CarLists\Controllers\CarListController;
-use Modules\Admin\CarLists\Controllers\VINController;
 use Modules\Admin\CarModel\Controllers\CarModelController;
+use Modules\Admin\Checkout\Controllers\CheckoutController;
 use Modules\Admin\City_Mpg\Controllers\CityMpgController;
 use Modules\Admin\Color\ExteriorColor\Controllers\ExteriorColorController;
 use Modules\Admin\Color\InteriorColor\Controllers\InteriorColorController;
@@ -34,7 +34,9 @@ use Modules\Admin\Overall_Height\Controllers\OverallHeightController;
 use Modules\Admin\Overall_Length\Controllers\OverallLengthController;
 use Modules\Admin\Overall_Width\Controllers\OverallWidthController;
 use Modules\Admin\Seller_Type\Controllers\SellerTypeController;
+use Modules\Admin\SingleUser\Controllers\SingleUserController;
 use Modules\Admin\Std_seating\Controllers\StdSeatingController;
+use Modules\Admin\Subscriptions\Controllers\SubscriptionController;
 use Modules\Admin\Transmission\Controllers\TransmissionController;
 use Modules\Admin\Trim\Controllers\TrimController;
 use Modules\Admin\Vehicle_Type\Controllers\VehicleTypeController;
@@ -385,6 +387,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::delete('/{id}', [CityMpgController::class, 'destroy'])->name('delete');
         });
 
+
+        //Subscription Model Routes
+        Route::prefix('/admin/subscription')->group(function(){
+            Route::post('/', [SubscriptionController::class, 'store'])->name('store');
+            Route::get('/', [SubscriptionController::class, 'index'])->name('index');
+            Route::get('/{id}', [SubscriptionController::class, 'show'])->name('single_view');
+            Route::put('/{id}', [SubscriptionController::class, 'update'])->name('update');
+            Route::delete('/{id}', [SubscriptionController::class, 'destroy'])->name('delete');
+        });
+
         
         //Car List Routes
         Route::prefix('/admin/car-list')->group(function(){
@@ -393,6 +405,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
             Route::put('/{id}', [CarListController::class, 'update'])->name('update');
             Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
+        });
+
+
+        // SingleUser
+        Route::prefix('/admin')->group(function(){
+            Route::get('/profile', [SingleUserController::class, 'index'])->name('singleuser');
+            Route::put('/profile',[SingleUserController::class, 'update'])->name('updateProfile');
         });
 
 
@@ -537,7 +556,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         //Overall Height Routes
         Route::prefix('/overall-height')->group(function(){
-            Route::post('/', [OverallHeightController::class, 'store'])->name('store');
+        Route::post('/', [OverallHeightController::class, 'store'])->name('store');
             Route::get('/', [OverallHeightController::class, 'index'])->name('index');
         });
 
@@ -587,11 +606,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/', [CartController::class, 'add']);
             Route::post('/delete', [CartController::class, 'remove']);
         });
+
+        // Checkout
+        // Route::prefix(prefix: '/checkout')->group(function(){
+        //     Route::get('/', function(){
+        //         return "Hellow";
+        //     });
+        // });
+        Route::get('checkout', [CheckoutController::class, 'checkout']);
         
 
 
         Route::prefix('/user')->group(function(){
             Route::get('/all-drop', [AllDropController::class, 'index'])->name('showAllDrop');
+            Route::get('/profile', [SingleUserController::class, 'index'])->name('singleuser');
+            Route::put('/profile',[SingleUserController::class, 'update'])->name('updateProfile');
         });
 
 

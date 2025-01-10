@@ -3,13 +3,14 @@
 namespace Modules\Admin\Users\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use Modules\Admin\Users\Models\Auth;
 use Modules\Auth\Mail\welcome_mail;
+use Modules\Auth\Models\Auth;
 
 class UserController extends Controller
 {

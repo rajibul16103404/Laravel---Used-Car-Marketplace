@@ -13,9 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('auths', function (Blueprint $table) {
-            $table->integer('role')->default(0);
-            $table->integer('verified')->default(0);
+        Schema::create('checkouts', function (Blueprint $table) {
+            $table->id();
+            $table->string('order_id');
+            $table->string('amount');
+            $table->integer('user_id');
+            $table->string('payment_status')->default('pending');
+            $table->timestamps();
         });
     }
 
@@ -26,8 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('auths', function (Blueprint $table) {
-            $table->dropColumn('role');
-        });
+        Schema::dropIfExists('checkouts');
     }
 };

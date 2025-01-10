@@ -26,7 +26,7 @@ class AuthController extends Controller
         if ($user->password === 'password') {
             return response()->json([
                 'message' => 'Your password must be reset.',
-                'reset_url' => route('password.forgot', ['email' => $user->email]),
+                'email' => $user->email
             ], 403);
         }
         else{

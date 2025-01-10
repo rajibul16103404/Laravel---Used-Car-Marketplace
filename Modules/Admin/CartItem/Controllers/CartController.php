@@ -40,17 +40,26 @@ class CartController extends Controller
             ->where('carlist_id', $carlist->id)
             ->first();
 
+        if(!$cartItem)
+        {
+            // Add new item
+            Cart::create([
+                'user_id' => Auth::id(),
+                'carlist_id' => $carlist->id,
+            ]);
+        
 
-        // Add new item
-        Cart::create([
-            'user_id' => Auth::id(),
-            'carlist_id' => $carlist->id,
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Car added to cart',
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Car added to cart',
+            ]);
+        }
+        else{
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Already added in cart',
+            ]);
+        }
     }
 
     // Remove item from the cart

@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', 'development'),
 
     /*
     |--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -229,6 +229,9 @@ return [
         Modules\Admin\Inventory_Type\InventoryTypeServiceProvider::class,
         Modules\Admin\Seller_Type\SellerTypeServiceProvider::class,
         Modules\Admin\CartItem\CarItemServiceProvider::class,
+        Modules\Admin\Subscriptions\SubscriptionServiceProvider::class,
+        Modules\Admin\Checkout\CheckoutServiceProvider::class,
+        Modules\Admin\SingleUser\SingleUserServiceProvider::class,
     ],
 
     /*

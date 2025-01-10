@@ -26,13 +26,13 @@ Route::get('/', function () {
 });
 
 
-Route::prefix('blog')->group(function () {
-    Route::get('/', [\Modules\Blog\Controllers\BlogController::class, 'index']);
-});
+// Route::prefix('blog')->group(function () {
+//     Route::get('/', [\Modules\Blog\Controllers\BlogController::class, 'index']);
+// });
 
-Route::prefix('auth')->group(function () {
-    Route::get('/', [\Modules\Auth\Controllers\AuthController::class, 'index']);
-});
+// Route::prefix('auth')->group(function () {
+//     Route::get('/', [\Modules\Auth\Controllers\AuthController::class, 'index']);
+// });
 
 
 
