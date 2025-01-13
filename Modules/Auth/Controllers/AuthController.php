@@ -23,35 +23,41 @@ class AuthController extends Controller
     {
         $user = Auth::where('email', $request->email)->first();
 
-        if ($user->password === 'password') {
-            return response()->json([
-                'message' => 'Your password must be reset.',
-                'email' => $user->email
-            ], 403);
+        if($user){
+
+            if ($user->password === 'password') {
+                return response()->json([
+                    'message' => 'Your password must be reset.',
+                    'email' => $user->email
+                ], 403);
+            }
+            else{
+                $request->validate([
+                    'email' => 'required|email',
+                    'password' => 'required',
+                ]);
+        
+                
+        
+                if (!$user || !Hash::check($request->password, $user->password)) {
+                    return response()->json(['message' => 'Invalid credentials'], 401);
+                }
+                
+                if(!$user->hasVerifiedEmail()){
+                    return response()->json(['message' => 'Please verify your email address.'],403);
+                }
+        
+                // Generate token
+                $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
+        
+                return response()->json([
+                    'user' => $user,
+                    'token' => $token,
+                ]);
+            }
         }
         else{
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
-            ]);
-    
-            
-    
-            if (!$user || !Hash::check($request->password, $user->password)) {
-                return response()->json(['message' => 'Invalid credentials'], 401);
-            }
-            
-            if(!$user->hasVerifiedEmail()){
-                return response()->json(['message' => 'Please verify your email address.'],403);
-            }
-    
-            // Generate token
-            $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
-    
-            return response()->json([
-                'user' => $user,
-                'token' => $token,
-            ]);
+            return response()->json(['message' => 'User Not Found'], 401);
         }
 
         
@@ -62,78 +68,84 @@ class AuthController extends Controller
     }
     public function register(Request $request)
     {
-        
-        // Validate the request data
-        $validator = Validator::make($request->all(), [
-            'dealer_id'=>'nullable|string',
-            'name'=>'required|string',
-            'email'=>'required|string',
-            'otp'=>'nullable|string',
-            'email_verified_at'=>'nullable|string',
-            'phone'=>'required|string',
-            'street'=>'nullable|string',
-            'state'=>'nullable|string',
-            'city'=>'nullable|string',
-            'zip'=>'nullable|string',
-            'country'=>'nullable|string',
-            'inventory_url'=>'nullable|string',
-            'data_source'=>'nullable|string',
-            'listing_count'=>'nullable|string',
-            'latitude'=>'nullable|string',
-            'longitude'=>'nullable|string',
-            'status'=>'nullable|string',
-            'dealer_type'=>'nullable|string',
-            'imageURL'=>'nullable|string',
-            'password'=>'required|string',
-            'role'=>'nullable|string',
-        ]);
+        $findUser = Auth::where('email', $request->email)->orWhere('phone', $request->phone)->first();
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        if(!$findUser){
+            // Validate the request data
+            $validator = Validator::make($request->all(), [
+                'dealer_id'=>'nullable|string',
+                'name'=>'required|string',
+                'email'=>'required|string',
+                'otp'=>'nullable|string',
+                'email_verified_at'=>'nullable|string',
+                'phone'=>'required|string',
+                'street'=>'nullable|string',
+                'state'=>'nullable|string',
+                'city'=>'nullable|string',
+                'zip'=>'nullable|string',
+                'country'=>'nullable|string',
+                'inventory_url'=>'nullable|string',
+                'data_source'=>'nullable|string',
+                'listing_count'=>'nullable|string',
+                'latitude'=>'nullable|string',
+                'longitude'=>'nullable|string',
+                'status'=>'nullable|string',
+                'dealer_type'=>'nullable|string',
+                'imageURL'=>'nullable|string',
+                'password'=>'required|string',
+                'role'=>'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $path = null;
+
+            if ($request->hasFile('imageURL')) {
+                // Store the image in the 'public' disk and get the path
+                $path = $request->file('imageURL')->store('images', 'public');
+                $path = Storage::url($path);
+            }
+
+            $otp = rand(111111,999999);
+            $email = $request->email;
+
+            // Create a new user
+            $user = Auth::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'otp'=>$otp,
+                'phone'=> $request->phone,
+                'password' => Hash::make($request->password),
+            ]);
+
+            $user = Auth::latest('id')->first();
+
+            // $verificationUrl = URL::temporarySignedRoute(
+            //     'verification.verify',
+            //     now()->addMinutes(60),  // URL validity time
+            //     ['id' => $user->id, 'hash' => sha1($user->email)]
+            // );
+
+            // $otp = rand(111111,999999);
+
+            Mail::to($user->email)->send(new VerifyEmail($otp));
+
+            // Optionally generate an API token
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            Mail::to($user->email)->send(new welcome_mail($request->password));
+
+            return response()->json([
+                'message' => 'User registered successfully. Please verify your email',
+                'token' => $token,
+                'email'=>$email,
+            ], 201);
         }
-
-        $path = null;
-
-        if ($request->hasFile('imageURL')) {
-            // Store the image in the 'public' disk and get the path
-            $path = $request->file('imageURL')->store('images', 'public');
-            $path = Storage::url($path);
+        else{
+            return response()->json(['message' => 'User Already Registered. Please Login.'], 401);
         }
-
-        $otp = rand(111111,999999);
-        $email = $request->email;
-
-        // Create a new user
-        $user = Auth::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'otp'=>$otp,
-            'phone'=> $request->phone,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $user = Auth::latest('id')->first();
-
-        // $verificationUrl = URL::temporarySignedRoute(
-        //     'verification.verify',
-        //     now()->addMinutes(60),  // URL validity time
-        //     ['id' => $user->id, 'hash' => sha1($user->email)]
-        // );
-
-        // $otp = rand(111111,999999);
-
-        Mail::to($user->email)->send(new VerifyEmail($otp));
-
-        // Optionally generate an API token
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        Mail::to($user->email)->send(new welcome_mail($request->password));
-
-        return response()->json([
-            'message' => 'User registered successfully. Please verify your email',
-            'token' => $token,
-            'email'=>$email,
-        ], 201);
     }
 
     public function verifyEmail(Request $request)

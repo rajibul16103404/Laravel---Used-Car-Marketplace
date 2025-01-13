@@ -41,33 +41,77 @@ class CarListController extends Controller
 {
     public function store(Request $request)
     {
-        // $validator = Validator::make($request->all(),[
-        //     'seller_id' => 'required|integer|max:255',
-        //     'title' => 'required|string|max:255',
-        //     'make_id' => 'required|integer|max:255',
-        //     'model_id' => 'required|integer|max:255',
-        //     'body_type_id' => 'required|integer|max:255',
-        //     'drive_type_id' => 'required|integer|max:255',
-        //     'transmission_id' => 'required|integer|max:255',
-        //     'condition_id' => 'required|integer|max:255',
-        //     'year' => 'required|integer|max:255',
-        //     'fuel_type_id' => 'required|integer|max:255',
-        //     'engine_size' => 'required|string|max:255',
-        //     'door_id' => 'required|integer|max:255',
-        //     'cylinder_id' => 'required|integer|max:255',
-        //     'color_id' => 'required|integer|max:255',
-        //     'description' => 'required|string|max:255',
-        //     'price' => 'required|float|max:255',
-        //     'safety_features' => 'required|string|max:255',
-        //     'key_features' => 'required|string|max:255',
-        //     'category_id' => 'required|integer|max:255',
-        //     'imageURL' => 'required|string|max:255',
-        //     'status' => 'required|integer|in:0,1',
-        // ]);
+        $validator = Validator::make($request->all(),[
+            'car_id' => 'required|string',
+            'vin' => 'required|string',
+            'heading' => 'required|string',
+            'price' => 'required|string',
+            'miles' => 'nullable|string',
+            'msrp' => 'nullable|string',
+            'data_source' => 'nullable|string',
+            'vdp_url' => 'nullable|string',
+            'carfax_1_owner' => 'nullable|string',
+            'carfax_clean_title' => 'nullable|string',
+            'exterior_color' => 'nullable|string',
+            'interior_color' => 'nullable|string',
+            'base_int_color' => 'nullable|string',
+            'base_ext_color' => 'nullable|string',
+            'dom' => 'nullable|string',
+            'dom_180' => 'nullable|string',
+            'dom_active' => 'nullable|string',
+            'dos_active' => 'nullable|string',
+            'seller_type' => 'nullable|string',
+            'inventory_type' => 'nullable|string',
+            'stock_no' => 'nullable|string',
+            'last_seen_at' => 'nullable|string',
+            'last_seen_at_date' => 'nullable|string',
+            'scraped_at' => 'nullable|string',
+            'scraped_at_date' => 'nullable|string',
+            'first_seen_at' => 'nullable|string',
+            'first_seen_at_date' => 'nullable|string',
+            'first_seen_at_source' => 'nullable|string',
+            'first_seen_at_source_date' => 'nullable|string',
+            'first_seen_at_mc' => 'nullable|string',
+            'first_seen_at_mc_date' => 'nullable|string',
+            'ref_price' => 'nullable|string',
+            'price_change_percent' => 'nullable|string',
+            'ref_price_dt' => 'nullable|string',
+            'ref_miles' => 'nullable|string',
+            'ref_miles_dt' => 'nullable|string',
+            'source' => 'nullable|string',
+            'model_code' => 'nullable|string',
+            'in_transit' => 'nullable|string',
+            'photo_links' => 'nullable|string',
+            'dealer_id' => 'nullable|string',
+            'year' => 'nullable|string',
+            'make' => 'nullable|string',
+            'model' => 'nullable|string',
+            'trim' => 'nullable|string',
+            'version' => 'nullable|string',
+            'body_type' => 'nullable|string',
+            'body_subtype' => 'nullable|string',
+            'vehicle_type' => 'nullable|string',
+            'transmission' => 'nullable|string',
+            'drivetrain' => 'nullable|string',
+            'fuel_type' => 'nullable|string',
+            'engine' => 'nullable|string',
+            'engine_size' => 'nullable|string',
+            'engine_block' => 'nullable|string',
+            'doors' => 'nullable|string',
+            'cylinders' => 'nullable|string',
+            'made_in' => 'nullable|string',
+            'overall_height' => 'nullable|string',
+            'overall_length' => 'nullable|string',
+            'overall_width' => 'nullable|string',
+            'std_seating' => 'nullable|string',
+            'highway_mpg' => 'nullable|string',
+            'city_mpg' => 'nullable|string',
+            'powertrain_type' => 'nullable|string',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json(['errors' => $validator->errors()], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         $carlist = Carlist::create([
             'car_id' => $request->car_id,
@@ -146,89 +190,63 @@ class CarListController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-
-        $qry = Carlist::query()
-        ->join('years','carlists.year','=','years.id')
-        ->join('makes','carlists.make','=','makes.id')
-        ->join('carmodels','carlists.model','=','carmodels.id');
-
-        // if ($request->filled('')) {
-        //     $qry->orderBy('carlists.created_at', 'desc');
-        // }
-
-        if($request->filled('heading')){
+        $qry = Carlist::query();
+    
+        // Apply Filters
+        if ($request->filled('heading')) {
             $qry->where('carlists.heading', 'LIKE', '%' . $request->heading . '%');
         }
-
-        if($request->filled('year')){
-            $qry->where('years.name', 'LIKE', '%' . $request->year . '%');
+        if ($request->filled('year')) {
+            $qry->whereHas('year', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->year . '%');
+            });
         }
-        
-        if($request->filled(key: 'make')){
-            $qry->where('makes.name', 'LIKE', '%' . $request->make . '%');
+        if ($request->filled('make')) {
+            $qry->whereHas('make', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->make . '%');
+            });
         }
-
-        if($request->filled('model')){
-            $qry->where('carmodels.name', 'LIKE', '%' . $request->model . '%');
-        }
-
-        if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('years.name', 'asc');
-        }
-        if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('years.name', 'desc');
-        }
-
-        if ($request->filled('sortField') && $request->input('sortField') === 'make' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('makes.name', 'asc');
-        }
-        if ($request->filled('sortField') && $request->input('sortField') === 'make' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('makes.name', 'desc');
-        }
-
-        if ($request->filled('sortField') && $request->input('sortField') === 'model' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('carmodels.name', 'asc');
-        }
-        if ($request->filled('sortField') && $request->input('sortField') === 'model' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('carmodels.name', 'desc');
-        }
-
-        if ($request->filled('sortField') && $request->input('sortField') === 'price' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('price', 'asc');
-        }
-        if ($request->filled('sortField') && $request->input('sortField') === 'price' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('price', 'desc');
-        }
-
-        if ($request->filled('sortField') && $request->input('sortField') === 'createdAt' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-            $qry->orderBy('created_at', 'asc')->orderBy('carlists.id', 'asc');
-        }
-        if ($request->filled('sortField') && $request->input('sortField') === 'createdAt' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-            $qry->orderBy('created_at', 'desc')->orderBy('carlists.id', 'desc');
-        }
-
-        // if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'asc') {
-        //     $qry->orderBy('year', 'desc');
-        // }
-        // if ($request->filled('sortField') && $request->input('sortField') === 'year' && $request->filled('sortDirection') && $request->input('sortDirection') === 'desc') {
-        //     $qry->orderBy('year', 'asc');
-        // }
-        
-    
-        // Get paginated data
-        $data = $qry->select('carlists.*')->orderBy('carlists.created_at', 'desc')->orderBy('carlists.id', 'desc')->paginate($perPage);
-    
-        // Add the corresponding year data for each car
-        $items = $data->items();
-        foreach ($items as $item) {
-            $item->year = Year::find($item->year);
-            $item->body_type = Body_Type::find($item->body_type);
-            $item->fuel_type = Fuel_type::find($item->fuel_type);
-            $item->make = Make::find($item->make);
-            $item->model = Carmodel::find($item->model);
+        if ($request->filled('model')) {
+            $qry->whereHas('model', function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->model . '%');
+            });
         }
     
-        // Prepare response
+        // Apply Sorting with Joins
+        if ($request->filled('sortField') && $request->filled('sortDirection')) {
+            $sortField = $request->input('sortField');
+            $sortDirection = $request->input('sortDirection') === 'asc' ? 'asc' : 'desc';
+    
+            // Define sortable fields and their corresponding joins
+            $sortableFields = [
+                'year' => ['table' => 'years', 'column' => 'name', 'foreign_key' => 'year'],
+                'make' => ['table' => 'makes', 'column' => 'name', 'foreign_key' => 'make'],
+                'model' => ['table' => 'carmodels', 'column' => 'name', 'foreign_key' => 'model'],
+                'price' => ['table' => 'carlists', 'column' => 'price'],
+                'createdAt' => ['table' => 'carlists', 'column' => 'created_at'],
+            ];
+    
+            if (isset($sortableFields[$sortField])) {
+                $field = $sortableFields[$sortField];
+                if (isset($field['table']) && $field['table'] !== 'carlists') {
+                    // Join the related table
+                    $qry->join($field['table'], "{$field['table']}.id", '=', "carlists.{$field['foreign_key']}")
+                        ->orderBy("{$field['table']}.{$field['column']}", $sortDirection);
+                } else {
+                    $qry->orderBy("carlists.{$field['column']}", $sortDirection);
+                }
+            }
+        } else {
+            $qry->orderBy('carlists.id', 'desc')->orderBy('carlists.created_at', 'desc');
+        }
+    
+        // Include related models for eager loading
+        $qry->with(['make', 'model', 'year']);
+    
+        // Paginate Data
+        $data = $qry->select('carlists.*')->paginate($perPage);
+    
+        // Prepare Response
         return response()->json([
             'pagination' => [
                 'total_count' => $data->total(),
@@ -239,9 +257,11 @@ class CarListController extends Controller
                 'previous_page' => $data->onFirstPage() ? null : $data->currentPage(),
             ],
             'message' => 'Data Retrieved Successfully',
-            'data' => $items, // This now contains the additional 'year' data
+            'data' => $data->items(),
         ], 200);
     }
+    
+
     
 
     public function show($id)
@@ -344,32 +364,77 @@ class CarListController extends Controller
         // dd($request->all());
 
         // Validate request data
-        // $validator = Validator::make($request->all(), [
-        //     'title' => 'required|string|max:255',
-        //     'make_id' => 'required|integer|max:255',
-        //     'model_id' => 'required|integer|max:255',
-        //     'body_type_id' => 'required|integer|max:255',
-        //     'drive_type_id' => 'required|integer|max:255',
-        //     'transmission_id' => 'required|integer|max:255',
-        //     'condition_id' => 'required|integer|max:255',
-        //     'year' => 'required|integer|max:255',
-        //     'fuel_type_id' => 'required|integer|max:255',
-        //     'engine_size' => 'required|string|max:255',
-        //     'door_id' => 'required|integer|max:255',
-        //     'cylinder_id' => 'required|integer|max:255',
-        //     'color_id' => 'required|integer|max:255',
-        //     'description' => 'required|string|max:255',
-        //     'price' => 'required|float|max:255',
-        //     'safety_features' => 'required|string|max:255',
-        //     'key_features' => 'required|string|max:255',
-        //     'category_id' => 'required|integer|max:255',
-        //     'imageURL' => 'required|string|max:255',
-        //     'status' => 'required|integer|in:0,1',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'car_id' => 'required|string',
+            'vin' => 'required|string',
+            'heading' => 'required|string',
+            'price' => 'required|string',
+            'miles' => 'nullable|string',
+            'msrp' => 'nullable|string',
+            'data_source' => 'nullable|string',
+            'vdp_url' => 'nullable|string',
+            'carfax_1_owner' => 'nullable|string',
+            'carfax_clean_title' => 'nullable|string',
+            'exterior_color' => 'nullable|string',
+            'interior_color' => 'nullable|string',
+            'base_int_color' => 'nullable|string',
+            'base_ext_color' => 'nullable|string',
+            'dom' => 'nullable|string',
+            'dom_180' => 'nullable|string',
+            'dom_active' => 'nullable|string',
+            'dos_active' => 'nullable|string',
+            'seller_type' => 'nullable|string',
+            'inventory_type' => 'nullable|string',
+            'stock_no' => 'nullable|string',
+            'last_seen_at' => 'nullable|string',
+            'last_seen_at_date' => 'nullable|string',
+            'scraped_at' => 'nullable|string',
+            'scraped_at_date' => 'nullable|string',
+            'first_seen_at' => 'nullable|string',
+            'first_seen_at_date' => 'nullable|string',
+            'first_seen_at_source' => 'nullable|string',
+            'first_seen_at_source_date' => 'nullable|string',
+            'first_seen_at_mc' => 'nullable|string',
+            'first_seen_at_mc_date' => 'nullable|string',
+            'ref_price' => 'nullable|string',
+            'price_change_percent' => 'nullable|string',
+            'ref_price_dt' => 'nullable|string',
+            'ref_miles' => 'nullable|string',
+            'ref_miles_dt' => 'nullable|string',
+            'source' => 'nullable|string',
+            'model_code' => 'nullable|string',
+            'in_transit' => 'nullable|string',
+            'photo_links' => 'nullable|string',
+            'dealer_id' => 'nullable|string',
+            'year' => 'nullable|string',
+            'make' => 'nullable|string',
+            'model' => 'nullable|string',
+            'trim' => 'nullable|string',
+            'version' => 'nullable|string',
+            'body_type' => 'nullable|string',
+            'body_subtype' => 'nullable|string',
+            'vehicle_type' => 'nullable|string',
+            'transmission' => 'nullable|string',
+            'drivetrain' => 'nullable|string',
+            'fuel_type' => 'nullable|string',
+            'engine' => 'nullable|string',
+            'engine_size' => 'nullable|string',
+            'engine_block' => 'nullable|string',
+            'doors' => 'nullable|string',
+            'cylinders' => 'nullable|string',
+            'made_in' => 'nullable|string',
+            'overall_height' => 'nullable|string',
+            'overall_length' => 'nullable|string',
+            'overall_width' => 'nullable|string',
+            'std_seating' => 'nullable|string',
+            'highway_mpg' => 'nullable|string',
+            'city_mpg' => 'nullable|string',
+            'powertrain_type' => 'nullable|string',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json(['errors' => $validator->errors()], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         // Find the carlist record
         $carlist = Carlist::find($id);
@@ -380,7 +445,7 @@ class CarListController extends Controller
 
         // Update the record
         $carlist->update([
-            'car_id' => $request->sellecar_idr_id,
+            'car_id' => $request->car_id,
             'vin' => $request->vin,
             'heading' => $request->heading,
             'price' => $request->price,

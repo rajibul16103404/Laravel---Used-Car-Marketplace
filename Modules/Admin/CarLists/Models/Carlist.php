@@ -4,7 +4,10 @@ namespace Modules\Admin\CarLists\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Admin\CarModel\Models\Carmodel;
 use Modules\Admin\CartItem\Models\Cart;
+use Modules\Admin\Make\Models\Make;
+use Modules\Admin\Year\Models\Year;
 
 class Carlist extends Model
 {
@@ -89,4 +92,25 @@ class Carlist extends Model
     public function cartItems(){
         return $this->hasMany(Cart::class);
     }
+
+    public function year() {
+        return $this->belongsTo(Year::class, 'year');
+    }
+    
+    // public function bodyType() {
+    //     return $this->belongsTo(Body_Type::class, 'body_type');
+    // }
+    
+    // public function fuelType() {
+    //     return $this->belongsTo(Fuel_type::class, 'fuel_type');
+    // }
+    
+    public function make() {
+        return $this->belongsTo(Make::class, 'make');
+    }
+    
+    public function model() {
+        return $this->belongsTo(Carmodel::class, 'model');
+    }
+    
 }

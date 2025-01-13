@@ -12,4 +12,6 @@ class Checkout extends Model
     protected $fillable=[
         'order_id','amount','user_id','status'
     ];
+
+    pu
 }
