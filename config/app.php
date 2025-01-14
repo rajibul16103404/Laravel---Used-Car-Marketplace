@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Facade;
+use Modules\Admin\Inventory_Type\InventoryTypeServiceProvider;
 
 return [
 
@@ -28,7 +29,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', 'development'),
 
     /*
     |--------------------------------------------------------------------------
@@ -41,7 +42,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -198,18 +199,39 @@ return [
         Modules\Auth\AuthServiceProvider::class,
         Modules\Admin\Body_Type\Body_TypeServiceProvider::class,
         Modules\Admin\Users\UserServiceProvider::class,
-        Modules\Admin\Category\CategoryServiceProvider::class,
-        Modules\Admin\Color\ColorServiceProvider::class,
-        Modules\Admin\Condition\ConditionServiceProvider::class,
         Modules\Admin\Cylinders\CylinderServiceProvider::class,
         Modules\Admin\Doors\DoorServiceProvider::class,
-        Modules\Admin\Drive_Type\Drive_TypeServiceProvider::class,
         Modules\Admin\Fuel_Type\Fuel_TypeServiceProvider::class,
         Modules\Admin\Make\MakeServiceProvider::class,
         Modules\Admin\CarModel\CarModelServiceProvider::class,
         Modules\Admin\Transmission\TransmissionServiceProvider::class,
         Modules\Admin\CarLists\CarListServiceProvider::class,
         Modules\WhatsappBot\WhatsappBotServiceProvider::class,
+        Modules\Admin\Year\YearServiceProvider::class,
+        Modules\Admin\Color\ExteriorColor\ExteriorColorServiceProvider::class,
+        Modules\Admin\Color\InteriorColor\InteriorColorServiceProvider::class,
+        Modules\Admin\Trim\TrimServiceProvider::class,
+        Modules\Admin\Version\VersionServiceProvider::class,
+        Modules\Admin\Body_Subtype\BodySubTypeServiceProvider::class,
+        Modules\Admin\Vehicle_Type\VehicleTypeServiceProvider::class,
+        Modules\Admin\DriveTrain\DriveTrainServiceProvider::class,
+        Modules\Admin\Engine\EngineServiceProvider::class,
+        Modules\Admin\Engine_Size\EngineSizeServiceProvider::class,
+        Modules\Admin\Engine_Block\EngineBlockServiceProvider::class,
+        Modules\Admin\MadeIn\MadeInServiceProvider::class,
+        Modules\Admin\Overall_Height\OverallHeightServiceProvider::class,
+        Modules\Admin\Overall_Length\OverallLengthServiceProvider::class,
+        Modules\Admin\Overall_Width\OverallWidthServiceProvider::class,
+        Modules\Admin\Std_seating\StdSeatingServiceProvider::class,
+        Modules\Admin\Highway_Mpg\HighwayMpgServiceProvider::class,
+        Modules\Admin\City_Mpg\CityMpgServiceProvider::class,
+        Modules\Admin\Powertrain_Type\PowerTrainTypeServiceProvider::class,
+        Modules\Admin\Inventory_Type\InventoryTypeServiceProvider::class,
+        Modules\Admin\Seller_Type\SellerTypeServiceProvider::class,
+        Modules\Admin\CartItem\CarItemServiceProvider::class,
+        Modules\Admin\Subscriptions\SubscriptionServiceProvider::class,
+        Modules\Admin\Checkout\CheckoutServiceProvider::class,
+        Modules\Admin\SingleUser\SingleUserServiceProvider::class,
     ],
 
     /*

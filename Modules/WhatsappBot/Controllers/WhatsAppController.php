@@ -21,9 +21,9 @@ class WhatsAppController extends Controller
                 "whatsapp:+8801709015762", // To
                 [
                     'from' => $from,
-                    'contentSid' => 'HXb5b62575e6e4ff6129ad7c8efe1f983e',
-                    'contentVariables' => json_encode(["1" => "12/1", "2" => "3pm"]),
-                    'body' => 'Here is thmc,39e first message'
+                    'contentSid' => 'HXfa71d1c4e79fd4eb34365af96d155a15',
+                    // 'contentVariables' => json_encode(["1" => "12/1", "2" => "3pm"]),
+                    // 'body' => 'Here is thmc,39e first message'
                 ]
             );
 

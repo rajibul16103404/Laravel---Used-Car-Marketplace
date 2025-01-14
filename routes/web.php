@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ComposerController;
+use App\Http\Controllers\PrivatCarController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -18,18 +19,20 @@ use App\Http\Controllers\WebhooController;
 |
 */
 
+Route::get('/', [PrivatCarController::class, 'index']);
+
 Route::get('/', function () {
     return view('welcome');
 });
 
 
-Route::prefix('blog')->group(function () {
-    Route::get('/', [\Modules\Blog\Controllers\BlogController::class, 'index']);
-});
+// Route::prefix('blog')->group(function () {
+//     Route::get('/', [\Modules\Blog\Controllers\BlogController::class, 'index']);
+// });
 
-Route::prefix('auth')->group(function () {
-    Route::get('/', [\Modules\Auth\Controllers\AuthController::class, 'index']);
-});
+// Route::prefix('auth')->group(function () {
+//     Route::get('/', [\Modules\Auth\Controllers\AuthController::class, 'index']);
+// });
 
 
 
@@ -110,6 +113,8 @@ Route::get('/drop-table/{table}', function ($table) {
 
 // install whatsapp
 Route::get('/composer-require-whatsapp', [ComposerController::class, 'composerRequireWhatsapp'])->middleware('auth'); // Ensure authentication
+
+
 
 
 

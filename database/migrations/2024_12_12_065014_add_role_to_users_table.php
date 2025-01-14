@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::table('auths', function (Blueprint $table) {
             $table->integer('role')->default(0);
+            $table->integer('verified')->default(0);
         });
     }
 

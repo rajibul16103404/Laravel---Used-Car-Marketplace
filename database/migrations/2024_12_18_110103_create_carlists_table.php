@@ -80,6 +80,9 @@ return new class extends Migration
             $table->string('highway_mpg');
             $table->string('city_mpg');
             $table->string('powertrain_type');
+            $table->string('status')->default(null);
+            $table->integer('featured')->default(0);
+            $table->integer('spotlight')->default(0);
             $table->timestamps();
         });
     }
