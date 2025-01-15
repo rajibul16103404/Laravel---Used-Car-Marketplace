@@ -63,13 +63,10 @@ class CartController extends Controller
     }
 
     // Remove item from the cart
-    public function remove(Request $request)
+    public function remove($id)
     {
-        $request->validate([
-            'cart_id' => 'required|exists:carts,id',
-        ]);
 
-        Cart::where('id', $request->cart_id)
+        Cart::where('id',  $id)
             ->where('user_id', Auth::id())
             ->delete();
 

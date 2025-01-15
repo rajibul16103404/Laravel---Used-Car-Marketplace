@@ -25,20 +25,18 @@ class AuthController extends Controller
 
         if($user){
 
-            if ($user->password === 'password') {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+
+            if ($user->password === 'password' && $request->password === 'password') {
                 return response()->json([
                     'message' => 'Your password must be reset.',
                     'email' => $user->email
                 ], 403);
             }
             else{
-                $request->validate([
-                    'email' => 'required|email',
-                    'password' => 'required',
-                ]);
-        
-                
-        
                 if (!$user || !Hash::check($request->password, $user->password)) {
                     return response()->json(['message' => 'Invalid credentials'], 401);
                 }
@@ -152,7 +150,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required|integer',
+            'otp' => 'required|string',
         ]);
 
         $user = Auth::where([

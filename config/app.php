@@ -232,6 +232,7 @@ return [
         Modules\Admin\Subscriptions\SubscriptionServiceProvider::class,
         Modules\Admin\Checkout\CheckoutServiceProvider::class,
         Modules\Admin\SingleUser\SingleUserServiceProvider::class,
+        Modules\Admin\Profile\ProfileServiceProvider::class,
     ],
 
     /*

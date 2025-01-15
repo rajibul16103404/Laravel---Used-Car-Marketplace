@@ -4,6 +4,7 @@ namespace Modules\Admin\Checkout\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Admin\CarLists\Models\Carlist;
 
 class Checkout extends Model
 {
@@ -13,5 +14,10 @@ class Checkout extends Model
         'order_id','amount','user_id','status'
     ];
 
-    pu
+    public function carlist()
+    {
+        return $this->belongsTo(Carlist::class, 'carlist_id'); // Adjust 'carlist_id' if your foreign key is named differently
+    }
+
+
 }
