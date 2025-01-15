@@ -190,7 +190,7 @@ class CarListController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-        $qry = Carlist::query();
+        $qry = Carlist::with(['make', 'model', 'year', 'body_type', 'fuel_type']);
     
         // Apply Filters
         if ($request->filled('heading')) {
@@ -241,7 +241,7 @@ class CarListController extends Controller
         }
     
         // Include related models for eager loading
-        $qry->with(['make', 'model', 'year']);
+        $qry->with(['make', 'model', 'year', 'body_type', 'fuel_type']);
     
         // Paginate Data
         $data = $qry->select('carlists.*')->paginate($perPage);

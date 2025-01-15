@@ -11,6 +11,7 @@
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
         "missael-anda/laravel-whatsapp": "^0.8.6",
+        "stripe/stripe-php": "^16.4",
         "twilio/sdk": "^8.3"
     },
     "require-dev": {

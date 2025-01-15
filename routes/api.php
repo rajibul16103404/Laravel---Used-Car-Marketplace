@@ -33,6 +33,7 @@ use Modules\Admin\Make\Controllers\MakeController;
 use Modules\Admin\Overall_Height\Controllers\OverallHeightController;
 use Modules\Admin\Overall_Length\Controllers\OverallLengthController;
 use Modules\Admin\Overall_Width\Controllers\OverallWidthController;
+use Modules\Admin\Profile\Controllers\ProfileController;
 use Modules\Admin\Seller_Type\Controllers\SellerTypeController;
 use Modules\Admin\SingleUser\Controllers\SingleUserController;
 use Modules\Admin\Std_seating\Controllers\StdSeatingController;
@@ -42,6 +43,7 @@ use Modules\Admin\Trim\Controllers\TrimController;
 use Modules\Admin\Vehicle_Type\Controllers\VehicleTypeController;
 use Modules\Admin\Version\Controllers\VersionController;
 use Modules\Admin\Year\Controllers\YearController;
+use Modules\Admin\Checkout\Controllers\StripePaymentController;
 use Modules\WhatsappBot\Controllers\TwilioWebhookController;
 use Modules\WhatsappBot\Controllers\WhatsappBotController;
 use Modules\WhatsappBot\Controllers\WhatsAppController;
@@ -604,7 +606,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::prefix('/cart')->group(function(){
             Route::get('/', [CartController::class, 'index']);
             Route::post('/', [CartController::class, 'add']);
-            Route::post('/delete', [CartController::class, 'remove']);
+            Route::delete('/{id}', [CartController::class, 'remove']);
         });
 
         // Checkout
@@ -621,7 +623,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/all-drop', [AllDropController::class, 'index'])->name('showAllDrop');
             Route::get('/profile', [SingleUserController::class, 'index'])->name('singleuser');
             Route::put('/profile',[SingleUserController::class, 'update'])->name('updateProfile');
+            Route::get('/profile/order-list',[ProfileController::class, 'orderList'])->name('orderList');
+            Route::get('/profile/order-item/{order_id}',[ProfileController::class, 'orderItem'])->name('orderItem');
+
         });
+
+        Route::get('/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession'])->name('payment.url');
+        Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
+        Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
+        Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
 
 
     });
