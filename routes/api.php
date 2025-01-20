@@ -16,6 +16,7 @@ use Modules\Admin\City_Mpg\Controllers\CityMpgController;
 use Modules\Admin\Color\ExteriorColor\Controllers\ExteriorColorController;
 use Modules\Admin\Color\InteriorColor\Controllers\InteriorColorController;
 use Modules\Admin\Doors\Controllers\DoorController;
+use Modules\Admin\Powertrain_Type\Controllers\PowertrainTypeController;
 use Modules\Auth\Controllers\AuthController;
 use Modules\Auth\Controllers\ForgotPasswordController;
 use Modules\Auth\Controllers\ResetPasswordController;
@@ -47,6 +48,7 @@ use Modules\Admin\Checkout\Controllers\StripePaymentController;
 use Modules\WhatsappBot\Controllers\TwilioWebhookController;
 use Modules\WhatsappBot\Controllers\WhatsappBotController;
 use Modules\WhatsappBot\Controllers\WhatsAppController;
+use Modules\Admin\Profile\Controllers\UserCarListContrioller;
 
 /*
 |--------------------------------------------------------------------------
@@ -300,7 +302,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         //Engine Block Routes
-        Route::prefix('/admin/engine-bock')->group(function(){
+        Route::prefix('/admin/engine-block')->group(function(){
             Route::post('/', [EngineBlockController::class, 'store'])->name('store');
             Route::get('/', [EngineBlockController::class, 'index'])->name('index');
             Route::get('/{id}', [EngineBlockController::class, 'show'])->name('single_view');
@@ -369,6 +371,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/{id}', [StdSeatingController::class, 'show'])->name('single_view');
             Route::put('/{id}', [StdSeatingController::class, 'update'])->name('update');
             Route::delete('/{id}', [StdSeatingController::class, 'destroy'])->name('delete');
+        });
+
+        //Powertrai Type Routes
+        Route::prefix('/admin/powertrain-type')->group(function(){
+            Route::post('/', [PowertrainTypeController::class, 'store'])->name('store');
+            Route::get('/', [PowertrainTypeController::class, 'index'])->name('index');
+            Route::get('/{id}', [PowertrainTypeController::class, 'show'])->name('single_view');
+            Route::put('/{id}', [PowertrainTypeController::class, 'update'])->name('update');
+            Route::delete('/{id}', [PowertrainTypeController::class, 'destroy'])->name('delete');
         });
 
         //Highway Mileage Model Routes
@@ -615,7 +626,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         //         return "Hellow";
         //     });
         // });
-        Route::get('checkout', [CheckoutController::class, 'checkout']);
+        Route::post('/checkout', [CheckoutController::class, 'checkout']);
         
 
 
@@ -625,14 +636,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::put('/profile',[SingleUserController::class, 'update'])->name('updateProfile');
             Route::get('/profile/order-list',[ProfileController::class, 'orderList'])->name('orderList');
             Route::get('/profile/order-item/{order_id}',[ProfileController::class, 'orderItem'])->name('orderItem');
-
+            Route::get('/carlist', [UserCarListContrioller::class, 'index'])->name('user.carlist');
         });
 
         Route::get('/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession'])->name('payment.url');
         Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
         Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
-        Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+        
+
+        Route::get('/webhook-setup', [StripePaymentController::class, 'createWebhookEndpoint']);
 
 
     });
 });
+
+Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional

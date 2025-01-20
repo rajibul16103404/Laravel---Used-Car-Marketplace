@@ -16,15 +16,22 @@ class CartController extends Controller
     
     public function index()
     {
+        // Retrieve all cart items for the logged-in user, including related carlist data
         $cartItems = Cart::with('carlist')
             ->where('user_id', Auth::id())
             ->get();
 
+            $subTotal = $cartItems->sum(function ($cartItem) {
+                return $cartItem->carlist->price;
+            });
+
         return response()->json([
             'status' => 'success',
             'data' => $cartItems,
+            'subTtotal' => $subTotal
         ]);
     }
+
 
     // Add item to the cart
     public function add(Request $request)
@@ -48,10 +55,14 @@ class CartController extends Controller
                 'carlist_id' => $carlist->id,
             ]);
         
+            $count= Cart::with('carlist')
+                ->where('user_id', Auth::id())
+                ->count(); 
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Car added to cart',
+                'count'=>$count
             ]);
         }
         else{
@@ -70,9 +81,14 @@ class CartController extends Controller
             ->where('user_id', Auth::id())
             ->delete();
 
+        $count= Cart::with('carlist')
+                ->where('user_id', Auth::id())
+                ->count();
+
         return response()->json([
             'status' => 'success',
             'message' => 'carlist removed from cart',
+            'count' => $count
         ]);
     }
 

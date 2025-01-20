@@ -3,16 +3,32 @@
 namespace Modules\Admin\Checkout\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Modules\Admin\Checkout\Models\OrderItems;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Modules\Admin\CartItem\Models\Cart;
 use Modules\Admin\Checkout\Models\Checkout;
 use Modules\Auth\Models\Auth as ModelsAuth;
 
 class CheckoutController extends Controller
 {
-    public function checkout()
+    public function checkout(Request $request)
     {
+
+        $validator = Validator::make($request->all(),[
+            'fullName' => 'required|string|max:255',
+            'street' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'zip' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
         $userData = Auth::id();
         
         if(!$userData){
@@ -42,7 +58,16 @@ class CheckoutController extends Controller
             'order_id' => $orderId,
             'amount' => $total,
             'user_id' => $userData,
-            'payment_status' => 'pending'
+            'full_name' => $request->fullName,
+            'phone' => $request->phone,
+            'street' => $request->street,
+            'city' => $request->state,
+            'state' => $request->state,
+            'zip'=> $request->zip,
+            'country'=> $request->country,
+            'order_status' => 'confirmed',
+            'payment_status' => 'pending',
+            'delivery_status' => 'pending'
         ]);
 
         return redirect()->route('payment.url');

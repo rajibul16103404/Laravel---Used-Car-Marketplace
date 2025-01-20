@@ -13,8 +13,10 @@ use Illuminate\Support\Facades\Validator;
 use Modules\Auth\Models\Auth;
 use Modules\Auth\Mail\VerifyEmail; // Custom email Mailable
 use Illuminate\Auth\Notifications\VerifyEmail as VerifyEmailNotification;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Admin\CartItem\Models\Cart;
 use Modules\Auth\Mail\welcome_mail;
 
 class AuthController extends Controller
@@ -47,10 +49,13 @@ class AuthController extends Controller
         
                 // Generate token
                 $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
+
+                $count= Cart::where('user_id', $user->id)->count();
         
                 return response()->json([
                     'user' => $user,
                     'token' => $token,
+                    'count' => $count,
                 ]);
             }
         }
