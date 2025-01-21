@@ -5,10 +5,11 @@ namespace Modules\Admin\Users\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Modules\Admin\CarLists\Models\Carlist;
+use Modules\Admin\Checkout\Models\Checkout;
 use Modules\Auth\Mail\welcome_mail;
 use Modules\Auth\Models\Auth;
 
@@ -42,23 +43,54 @@ class UserController extends Controller
         ],200);
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
-        // Find product by ID
-        $user = Auth::find($id);
+        $perPage = $request->input('per_page', 10);
     
-        // Check if product exists
+        // Find user by ID or dealer ID
+        $user = Auth::where('dealer_id', $id)->orWhere('id', $id)->first();
+    
+        // Check if user exists
         if (!$user) {
             return response()->json([
                 'message' => 'User not found',
             ], 404);
         }
     
+        // Retrieve user's orders with pagination
+        $orders = Checkout::where('user_id', $user->id)->paginate($perPage);
+    
+        // Retrieve user's car list with pagination
+        $carlist = Carlist::where('dealer_id', $user->id)->paginate($perPage);
+    
         return response()->json([
             'message' => 'User data retrieved successfully',
             'data' => $user,
+            'orders' => [
+                'pagination' => [
+                    'total_count' => $orders->total(),
+                    'total_pages' => $orders->lastPage(),
+                    'current_page' => $orders->currentPage(),
+                    'current_page_count' => $orders->count(),
+                    'next_page' => $orders->hasMorePages() ? $orders->currentPage() + 1 : null,
+                    'previous_page' => $orders->onFirstPage() ? null : $orders->currentPage() - 1,
+                ],
+                'data' => $orders->items(),
+            ],
+            'carlist' => [
+                'pagination' => [
+                    'total_count' => $carlist->total(),
+                    'total_pages' => $carlist->lastPage(),
+                    'current_page' => $carlist->currentPage(),
+                    'current_page_count' => $carlist->count(),
+                    'next_page' => $carlist->hasMorePages() ? $carlist->currentPage() + 1 : null,
+                    'previous_page' => $carlist->onFirstPage() ? null : $carlist->currentPage() - 1,
+                ],
+                'data' => $carlist->items(),
+            ],
         ], 200);
     }
+    
 
     public function getDataFromAPI(){
         // Fetch From API 1
@@ -83,7 +115,7 @@ class UserController extends Controller
                 // Check if data is valid
                 if (isset($data['dealers']) && is_array($data['dealers'])) {
                     foreach ($data['dealers'] as $dealer) {
-                        $existingDealer = Auth::where('dealer_id', $dealer['id'] ?? null)->first();
+                        $existingDealer = Auth::where('dealer_id', $dealer['id'] ?? null)->orWhere('email', $dealer['seller_email'])->first();
 
                         // Fetch or create `ExteriorColor`
                         // $exterior_colorData = null;
@@ -120,6 +152,9 @@ class UserController extends Controller
                                             'email_verified_at'=>$email_verified_at??null,
                                         ]);
                             Mail::to($dealer['seller_email'])->send(new welcome_mail($password));
+                        }
+                        else{
+
                         }
                     }
                     // Update pagination variables

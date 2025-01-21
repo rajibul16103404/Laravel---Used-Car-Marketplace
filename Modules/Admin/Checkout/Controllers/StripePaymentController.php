@@ -5,107 +5,161 @@ namespace Modules\Admin\Checkout\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Modules\Admin\Checkout\Models\Checkout;
 use Modules\Admin\Checkout\Models\OrderItems;
+use Modules\Admin\Checkout\Models\Transaction;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
+use Stripe\Exception\SignatureVerificationException;
+use Stripe\Webhook;
+use Stripe\WebhookEndpoint;
 
 class StripePaymentController extends Controller
 {
     // Create a Checkout Session
     public function createCheckoutSession()
-{
-    Stripe::setApiKey(env('STRIPE_SECRET'));
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
 
-    $userId = Auth::id();
-    $checkoutData = Checkout::where('user_id', $userId)->where('payment_status', 'pending')->latest()->first();
-    
-    // Get all order items for the given order_id
-    $orderItems = OrderItems::where('order_id', $checkoutData->order_id)->get();
+        $userId = Auth::id();
+        $checkoutData = Checkout::where('user_id', $userId)->where('payment_status', 'pending')->latest()->first();
 
-    // Initialize an empty array to hold line items
-    $lineItems = [];
+        if (!$checkoutData) {
+            return response()->json(['error' => 'No pending checkout found for this user.'], 404);
+        }
 
-    // Iterate over each order item
-    foreach ($orderItems as $orderItem) {
-        $items = json_decode($orderItem->items); // Decode the 'items' field (assumed to be JSON)
+        $orderItems = OrderItems::where('order_id', $checkoutData->order_id)->get();
 
-        // Create line item for each order item
-        $lineItems[] = [
-            'price_data' => [
-                'currency' => 'usd',
-                'product_data' => [
-                    'name' => $items->heading, // Product name
+        $lineItems = [];
+
+        foreach ($orderItems as $orderItem) {
+            $items = json_decode($orderItem->items);
+
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => $items->heading,
+                    ],
+                    'unit_amount' => $items->price * 100,
                 ],
-                'unit_amount' => $items->price * 100, // Price in cents
-            ],
-            'quantity' => 1, // Quantity of the product
-        ];
+                'quantity' => $orderItem->quantity ?? 1,
+            ];
+        }
+
+        try {
+            $session = Session::create([
+                'payment_method_types' => ['card'],
+                'line_items' => $lineItems,
+                'mode' => 'payment',
+                'metadata' => [
+                    'order_id' => $checkoutData->order_id,
+                ],
+                'success_url' => "https://carmarketplace.dkingsolution.org/success/{$checkoutData->order_id}",
+                'cancel_url' => "https://carmarketplace.dkingsolution.org/failed/{$checkoutData->order_id}",
+            ]);
+
+            return response()->json(['url' => $session->url ?? ''], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-
-    try {
-        // Create the Stripe checkout session with multiple line items
-        $session = Session::create([
-            'payment_method_types' => ['card'],
-            'line_items' => $lineItems, // Use the line items array built above
-            'mode' => 'payment',
-            'metadata' => [
-                'order_id' => $checkoutData->order_id,
-            ],
-            'success_url' => route('payment.success'),
-            'cancel_url' => route('payment.cancel'),
-        ]);
-
-        return response()->json(['url' => $session->url ?? ''], 200);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-}
-
 
     // Success Page
     public function success()
     {
-        return view('payment.success'); // Create a success view
+        return response()->json(['message' => 'Payment successful!']);
     }
 
     // Cancel Page
     public function cancel()
     {
-        return view('payment.cancel'); // Create a cancel view
+        return response()->json(['message' => 'Payment canceled!']);
     }
 
-    // (Optional) Handle Webhooks
+    // Handle Webhooks
     public function webhook(Request $request)
     {
-        $webhookSecret = env('STRIPE_WEBHOOK_SECRET');
+        $endpointSecret = env('STRIPE_WEBHOOK_SECRET');
 
-        $payload = @file_get_contents('php://input');
-        $sigHeader = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
-        $event = null;
+        $payload = $request->getContent();
+        $sigHeader = $request->header('Stripe-Signature');
 
         try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload,
-                $sigHeader,
-                $webhookSecret
-            );
-        } catch (\UnexpectedValueException $e) {
-            // Invalid payload
-            return response('Invalid payload', 400);
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            // Invalid signature
+            $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
+        } catch (SignatureVerificationException $e) {
             return response('Invalid signature', 400);
         }
 
-        // Handle the event
-        switch ($event->type) {
-            case 'checkout.session.completed':
-                $session = $event->data->object;
-                // Fulfill the purchase, e.g., update database
-                break;
-        }
+        // Log the event data for debugging
+        Log::info('Stripe Event Received:', ['event' => $event]);
+
 
         return response('Webhook handled', 200);
+    }
+
+    // Create a Webhook Endpoint
+    public function createWebhookEndpoint()
+    {
+        try {
+            Stripe::setApiKey(env('STRIPE_SECRET'));
+
+            $webhookEndpoint = WebhookEndpoint::create([
+                'url' => env('APP_URL') . '/api/stripe-webhook',
+                'enabled_events' => ['*'],
+            ]);
+
+            $webhookSecret = $webhookEndpoint->secret;
+
+            $this->setEnvValue('STRIPE_WEBHOOK_SECRET', $webhookSecret);
+
+            return response()->json(['message' => 'Webhook secret created and stored successfully.', 'secret' => $webhookSecret]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Update the .env file
+    private function setEnvValue($key, $value)
+    {
+        $path = base_path('.env');
+
+        if (File::exists($path)) {
+            $envContent = File::get($path);
+
+            if (preg_match('/^' . preg_quote($key) . '=.*/m', $envContent)) {
+                $envContent = preg_replace('/^' . preg_quote($key) . '=.*/m', "$key=$value", $envContent);
+            } else {
+                $envContent .= PHP_EOL . "$key=$value";
+            }
+
+            File::put($path, $envContent);
+        }
+    }
+
+    // Handle Payment Success
+    private function handlePaymentSuccess($paymentIntent)
+    {
+        Transaction::create([
+            'user_id' => Auth::id(),
+            'payment_id' => $paymentIntent->id,
+            'amount' => $paymentIntent->amount_received / 100,
+            'status' => 'success',
+            'metadata' => json_encode($paymentIntent->metadata),
+        ]);
+    }
+
+    // Handle Payment Failure
+    private function handlePaymentFailure($invoice)
+    {
+        Transaction::create([
+            'user_id' => Auth::id(),
+            'payment_id' => $invoice->id,
+            'amount' => $invoice->amount_due / 100,
+            'status' => 'failed',
+            'metadata' => json_encode($invoice->metadata),
+        ]);
     }
 }

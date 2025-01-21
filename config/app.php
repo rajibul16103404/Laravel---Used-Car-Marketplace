@@ -233,6 +233,15 @@ return [
         Modules\Admin\Checkout\CheckoutServiceProvider::class,
         Modules\Admin\SingleUser\SingleUserServiceProvider::class,
         Modules\Admin\Profile\ProfileServiceProvider::class,
+
+
+
+
+
+
+
+
+        Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
     ],
 
     /*

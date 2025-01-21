@@ -5,23 +5,26 @@ namespace Modules\Auth\Controllers;
 use App\Http\Controllers\Controller;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
-use Modules\Auth\Models\Auth;
+use Modules\Auth\Models\Auth as ModelAuth;
 use Modules\Auth\Mail\VerifyEmail; // Custom email Mailable
-use Illuminate\Auth\Notifications\VerifyEmail as VerifyEmailNotification;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+
+use Modules\Admin\CartItem\Models\Cart;
 use Modules\Auth\Mail\welcome_mail;
 
 class AuthController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:api', ['except' => ['login','register']]);
+    }
     public function login(Request $request)
     {
-        $user = Auth::where('email', $request->email)->first();
+        $user = ModelAuth::where('email', $request->email)->first();
 
         if($user){
 
@@ -44,14 +47,27 @@ class AuthController extends Controller
                 if(!$user->hasVerifiedEmail()){
                     return response()->json(['message' => 'Please verify your email address.'],403);
                 }
+
+                $count= Cart::where('user_id', $user->id)->count();
+
+                $credentials = $request->only('email', 'password');
+
+                if ($token = $this->guard()->attempt($credentials)) {
+                    return $this->respondWithToken($token, $count);
+                }
+
+                return response()->json(['error' => 'Unauthorized'], 401);
         
-                // Generate token
-                $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
+                // // Generate token
+                // $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
+
+                
         
-                return response()->json([
-                    'user' => $user,
-                    'token' => $token,
-                ]);
+                // return response()->json([
+                //     'user' => $user,
+                //     'token' => $token,
+                //     'count' => $count,
+                // ]);
             }
         }
         else{
@@ -66,7 +82,7 @@ class AuthController extends Controller
     }
     public function register(Request $request)
     {
-        $findUser = Auth::where('email', $request->email)->orWhere('phone', $request->phone)->first();
+        $findUser = ModelAuth::where('email', $request->email)->orWhere('phone', $request->phone)->first();
 
         if(!$findUser){
             // Validate the request data
@@ -110,7 +126,7 @@ class AuthController extends Controller
             $email = $request->email;
 
             // Create a new user
-            $user = Auth::create([
+            $user = ModelAuth::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'otp'=>$otp,
@@ -118,7 +134,7 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
-            $user = Auth::latest('id')->first();
+            $user = ModelAuth::latest('id')->first();
 
             // $verificationUrl = URL::temporarySignedRoute(
             //     'verification.verify',
@@ -153,7 +169,7 @@ class AuthController extends Controller
             'otp' => 'required|string',
         ]);
 
-        $user = Auth::where([
+        $user = ModelAuth::where([
             ['email', '=', $request->email],
             ['otp', '=', $request->otp],
         ])->first();
@@ -170,6 +186,34 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Verified Successfully.',
         ]);
+    }
+
+    protected function respondWithToken($token, $count)
+    {
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => $this->guard()->factory()->getTTL() * 60,
+            'user' => auth()->user(),
+            'count' => $count
+        ]);
+    }
+
+    public function logout()
+    {
+        $this->guard()->logout();
+
+        return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    public function refresh()
+    {
+        return $this->respondWithToken($this->guard()->refresh());
+    }
+
+    public function guard()
+    {
+        return Auth::guard();
     }
 
     

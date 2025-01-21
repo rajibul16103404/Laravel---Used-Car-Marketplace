@@ -3,7 +3,7 @@
 namespace Modules\Admin\CarLists\Controllers;
 
 use App\Http\Controllers\Controller;
-
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
@@ -349,6 +349,14 @@ class CarListAutoController extends Controller
                             );
                             $powertrain_typeData = $powertrain_type->id;
                         }
+
+                        // Fetch Dealer ID
+                        // $dealer_id = FacadesAuth::id();
+                        // if($car['dealer_id'] === $dealer_id)
+                        // {
+                        //     $user_id = Auth::where('dealer_id', $dealer_id)->first();
+                        //     $modDealerId = $user_id->id;
+                        // }
 
                         
 
