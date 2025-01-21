@@ -131,7 +131,7 @@ Route::post('/email/resend', function (Request $request) {
 
 
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['api'])->group(function () {
     Route::middleware('role:admin')->group(function () {
 
 
@@ -640,10 +640,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
 
         Route::get('/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession'])->name('payment.url');
-        Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
-        Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
-        
-
         Route::get('/webhook-setup', [StripePaymentController::class, 'createWebhookEndpoint']);
 
 
@@ -651,3 +647,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
+Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
