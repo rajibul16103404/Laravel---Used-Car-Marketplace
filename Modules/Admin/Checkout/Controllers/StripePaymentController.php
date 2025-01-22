@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Modules\Admin\CarLists\Models\Carlist;
+use Modules\Admin\CartItem\Models\shipping;
 use Modules\Admin\Checkout\Models\Checkout;
 use Modules\Admin\Checkout\Models\OrderItems;
 use Modules\Admin\Checkout\Models\Transaction;
+use Modules\Admin\Subscriptions\Models\Subscription;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\SignatureVerificationException;
@@ -19,25 +22,37 @@ use Stripe\WebhookEndpoint;
 class StripePaymentController extends Controller
 {
     // Create a Checkout Session
-    public function createCheckoutSession()
+    public function createCheckoutSession($order_id)
     {
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         $userId = Auth::id();
-        $checkoutData = Checkout::where('user_id', $userId)->where('payment_status', 'pending')->latest()->first();
+        $checkoutData = Checkout::where('order_id', $order_id)->first();
 
         if (!$checkoutData) {
             return response()->json(['error' => 'No pending checkout found for this user.'], 404);
         }
 
-        $orderItems = OrderItems::where('order_id', $checkoutData->order_id)->get();
+        $orderItems = OrderItems::where('order_id', $checkoutData->order_id)->first();
+
+        $item = OrderItems::where('order_id', $order_id)->first();
+
+        $car = Carlist::find($item->items);
+
+        $codes = Checkout::where('order_id', $order_id)->first();
+
+        $shipping = shipping::where('country_code', $codes->country_code)->where('port_code', $codes->port_code)->first();
+
+        $platform = Subscription::where('name', 'Platform Fee')->first();
+
+        $platformFee = ($car->price / 100)* $platform->amount;
 
         $lineItems = [];
 
-        foreach ($orderItems as $orderItem) {
-            $items = json_decode($orderItem->items);
+            $items = Carlist::find($orderItems->items);
+            // dd($items);
 
-            $lineItems[] = [
+            $lineItems[] = [[
                 'price_data' => [
                     'currency' => 'usd',
                     'product_data' => [
@@ -45,9 +60,31 @@ class StripePaymentController extends Controller
                     ],
                     'unit_amount' => $items->price * 100,
                 ],
-                'quantity' => $orderItem->quantity ?? 1,
-            ];
-        }
+                'quantity' => 1,
+            ],
+            [
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => 'Shipping Fee',
+                    ],
+                    'unit_amount' => $shipping->amount * 100,
+                ],
+                'quantity' => 1,
+            ],
+            [
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => 'Platform Fee',
+                    ],
+                    'unit_amount' => $platformFee * 100,
+                ],
+                'quantity' => 1,
+            ]
+        ];
+
+        // dd($lineItems);
 
         try {
             $session = Session::create([

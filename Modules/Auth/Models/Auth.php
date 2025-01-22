@@ -43,6 +43,7 @@ class Auth extends Authenticatable implements MustVerifyEmail, JWTSubject
         'imageURL',
         'password',
         'role',
+        'verified',
 
     ];
 

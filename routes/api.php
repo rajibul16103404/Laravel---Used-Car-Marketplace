@@ -132,7 +132,7 @@ Route::post('/email/resend', function (Request $request) {
 
 
 Route::middleware(['api'])->group(function () {
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware(['role:admin'])->group(function () {
 
 
         //Users List Routes
@@ -438,7 +438,7 @@ Route::middleware(['api'])->group(function () {
         });
     });
 
-    Route::middleware('role:user')->group(function () {
+    Route::middleware(['role:user'])->group(function () {
 
 
         //Exterior Color Routes
@@ -618,6 +618,7 @@ Route::middleware(['api'])->group(function () {
             Route::get('/', [CartController::class, 'index']);
             Route::post('/', [CartController::class, 'add']);
             Route::delete('/{id}', [CartController::class, 'remove']);
+            Route::get('/all-shipping-fee', [CartController::class, 'showAllShippingRates']);
         });
 
         // Checkout
@@ -626,7 +627,9 @@ Route::middleware(['api'])->group(function () {
         //         return "Hellow";
         //     });
         // });
-        Route::post('/checkout', [CheckoutController::class, 'checkout']);
+        Route::post('/proceedToCheckout', [CheckoutController::class, 'ProceedToCheckOut']);
+        Route::post('/checkout/{order_id}', [CheckoutController::class, 'checkout']);
+        Route::get('/checkoutDetails/{order_id}', [CheckoutController::class, 'checkoutDetails']);
         
 
 
@@ -639,7 +642,7 @@ Route::middleware(['api'])->group(function () {
             Route::get('/carlist', [UserCarListContrioller::class, 'index'])->name('user.carlist');
         });
 
-        Route::get('/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession'])->name('payment.url');
+        Route::get('/create-checkout-session/{order_id}', [StripePaymentController::class, 'createCheckoutSession'])->name('payment.url');
         Route::get('/webhook-setup', [StripePaymentController::class, 'createWebhookEndpoint']);
 
 

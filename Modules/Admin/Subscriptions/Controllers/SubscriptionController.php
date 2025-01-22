@@ -13,7 +13,7 @@ class SubscriptionController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'name' => 'required|string|max:255',
-            'amount' => 'required|numeric',
+            'amount' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -85,7 +85,7 @@ class SubscriptionController extends Controller
         // Validate request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'amount' => 'required|numeric',
+            'amount' => 'required|string',
         ]);
 
         if ($validator->fails()) {

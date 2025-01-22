@@ -79,6 +79,8 @@ class Carlist extends Model
         'highway_mpg',
         'city_mpg',
         'powertrain_type',
+        'featured',
+        'spotlight',
         'view_count',
     ];
 
