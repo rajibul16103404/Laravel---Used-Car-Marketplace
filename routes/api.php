@@ -650,5 +650,6 @@ Route::middleware(['api'])->group(function () {
 });
 
 Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');

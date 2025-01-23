@@ -33,6 +33,7 @@ class CheckoutController extends Controller
             'state' => $request->state,
             'zip' => $request->zip,
             'order_status' => 'confirmed',
+            'order_from'=>$request->order_from
         ]);
 
         return redirect()->route('payment.url',['order_id'=>$order_id],);
@@ -79,6 +80,7 @@ class CheckoutController extends Controller
 
         $checkout = Checkout::create([
             'order_id' => $orderId,
+            'car_id'=>$cartData->carlist_id,
             'amount' => $shipping->amount+$platformFee+$subtotal,
             'user_id' => $userData,
             'country_code'=> $request->country_code,

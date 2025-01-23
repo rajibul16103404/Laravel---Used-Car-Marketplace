@@ -64,8 +64,6 @@ class ProfileController extends Controller
 
     public function orderItem($order_id)
     {
-        // Find all order items by order_id
-        $orderItems = OrderItems::where('order_id', $order_id)->first();
 
         $item = OrderItems::where('order_id', $order_id)->first();
 
@@ -79,16 +77,30 @@ class ProfileController extends Controller
 
         $platformFee = ($car->price / 100)* $platform->amount;
 
-        $car = Carlist::find($orderItems->items);
-        
-        return response([
-            'status'=>'Success',
+        $car = Carlist::find($item->items);
+
+        $data[]=[
             'heading'=>$car->heading,
             'price'=>$car->price,
             'image'=>$car->photo_links,
             'shippingFee'=>$shipping->amount,
             'platformFee'=>$platformFee,
-            'total'=>$car->price+$shipping->amount+$platformFee
+            'total'=>$car->price+$shipping->amount+$platformFee,
+            'orderId'=>$order_id,
+            'payment_status'=>$codes->payment_status,
+            'order_status'=>$codes->order_status,
+            'fullname'=>$codes->full_name,
+            'phone'=>$codes->phone,
+            'street'=>$codes->street,
+            'city'=>$codes->city,
+            'state'=>$codes->state,
+            'zip'=>$codes->zip,
+            'country'=>$shipping->country
+        ];
+        
+        return response([
+            'status'=>'Success',
+            'data'=>$data
         ]);
 
     }

@@ -244,7 +244,7 @@ class CarListController extends Controller
         $qry->with(['make', 'model', 'year', 'body_type', 'fuel_type']);
     
         // Paginate Data
-        $data = $qry->select('carlists.*')->paginate($perPage);
+        $data = $qry->select('carlists.*')->where('status','!=','sold')->paginate($perPage);
     
         // Prepare Response
         return response()->json([

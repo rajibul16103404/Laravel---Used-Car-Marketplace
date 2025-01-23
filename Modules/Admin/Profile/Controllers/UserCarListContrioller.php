@@ -14,7 +14,7 @@ class UserCarListContrioller extends Controller
         $user_id = Auth::id();
         $perPage = $request->input('per_page', 10);
 
-        $data = Carlist::where('dealer_id', $user_id)->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
+        $data = Carlist::where('dealer_id', $user_id)->where('status','!=','sold')->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
 
         return response()->json([
             'pagination' => [

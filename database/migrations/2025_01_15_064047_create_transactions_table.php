@@ -16,9 +16,13 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->string('transaction_id');
-            $table->string('order_id');
-            $table->string('user_id');
-            $table->string('status')->default(null);
+            $table->string('payment_id');
+            $table->string('amount');
+            $table->string('currency');
+            $table->string('status');
+            $table->string('order_from');
+            $table->json('order_id');
+            $table->json('car_id');
             $table->timestamps();
         });
     }
