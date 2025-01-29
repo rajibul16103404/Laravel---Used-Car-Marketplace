@@ -10,6 +10,6 @@
     <p>Here is your login credentials:</p><br>
     <p><b>Use this email and the password is given below.</b></p>
     <p>Password: <b>{{$password}}</b></p><br>
-    <p>Use it to validate your account.</p>
+    <p>Use it to validate/login to your account.</p>
 </body>
 </html>

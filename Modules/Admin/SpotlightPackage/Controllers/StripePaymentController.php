@@ -5,12 +5,8 @@ namespace Modules\Admin\Checkout\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Modules\Admin\CarLists\Models\Carlist;
-use Modules\Admin\CartItem\Models\shipping;
-use Modules\Admin\Checkout\Models\Checkout;
-use Modules\Admin\Checkout\Models\OrderItems;
-use Modules\Admin\Checkout\Models\Transaction;
-use Modules\Admin\Subscriptions\Models\Subscription;
+use Modules\Admin\SpotlightPackage\Models\Purchase;
+use Modules\Admin\SpotlightPackage\Models\Spotlight;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\SignatureVerificationException;
@@ -20,53 +16,22 @@ use Stripe\WebhookEndpoint;
 class StripePaymentController extends Controller
 {
     // Create a Checkout Session
-    public function createCheckoutSession($order_id)
+    public function createCheckoutSession($spotlight_id)
     {
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        $checkoutData = Checkout::where('order_id', $order_id)->first();
+        $purchaseData = Purchase::where()
 
-        if (!$checkoutData) {
-            return response()->json(['error' => 'No pending checkout found for this user.'], 404);
-        }
-
-        $orderItems = OrderItems::where('order_id', $checkoutData->order_id)->first();
-        $item = OrderItems::where('order_id', $order_id)->first();
-        $car = Carlist::find($item->items);
-        $codes = Checkout::where('order_id', $order_id)->first();
-        $shipping = shipping::where('country_code', $codes->country_code)->where('port_code', $codes->port_code)->first();
-        $platform = Subscription::where('name', 'Platform Fee')->first();
-        $platformFee = ($car->price / 100) * $platform->amount;
-
+        $data = Spotlight::find($spotlight_id);
 
         $lineItems = [
             [
                 'price_data' => [
                     'currency' => 'usd',
                     'product_data' => [
-                        'name' => $car->heading,
+                        'name' => $data->package_name,
                     ],
-                    'unit_amount' => $car->price * 100,
-                ],
-                'quantity' => 1,
-            ],
-            [
-                'price_data' => [
-                    'currency' => 'usd',
-                    'product_data' => [
-                        'name' => 'Shipping Fee',
-                    ],
-                    'unit_amount' => $shipping->amount * 100,
-                ],
-                'quantity' => 1,
-            ],
-            [
-                'price_data' => [
-                    'currency' => 'usd',
-                    'product_data' => [
-                        'name' => 'Platform Fee',
-                    ],
-                    'unit_amount' => $platformFee * 100,
+                    'unit_amount' => $data->price * 100,
                 ],
                 'quantity' => 1,
             ]
@@ -79,16 +44,14 @@ class StripePaymentController extends Controller
                 'mode' => 'payment',
                 'payment_intent_data'=>[
                     'metadata' => [
-                        'order_id' => $checkoutData->order_id,
-                        'order_from'=>$checkoutData->order_from,
-                        'car_id'=>$checkoutData->car_id,
+                        'spotlight_id' => $data->id
                     ],
                 ],
                 'success_url' => "https://carmarketplace.dkingsolution.org/success/{$checkoutData->order_id}",
                 'cancel_url' => "https://carmarketplace.dkingsolution.org/failed/{$checkoutData->order_id}",
             ]);
 
-            return response()->json(['url' => $session->url ?? '' ], 200);
+            return response()->json(['url' => $session->url ?? ''], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

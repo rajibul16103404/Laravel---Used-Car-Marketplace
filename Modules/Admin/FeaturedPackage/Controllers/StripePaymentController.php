@@ -88,7 +88,7 @@ class StripePaymentController extends Controller
                 'cancel_url' => "https://carmarketplace.dkingsolution.org/failed/{$checkoutData->order_id}",
             ]);
 
-            return response()->json(['url' => $session->url ?? '' ], 200);
+            return response()->json(['url' => $session->url ?? ''], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

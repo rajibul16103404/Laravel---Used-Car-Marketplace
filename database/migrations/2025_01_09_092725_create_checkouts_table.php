@@ -30,10 +30,11 @@ return new class extends Migration
             $table->string('port_code')->default(null);
             $table->string('shipping_fee')->default(0);
             $table->string('platform_fee')->default(0);
-            $table->string('tax')->default(0);
+            $table->string('otp')->default(null);
             $table->string('order_status')->default('pending')->default(null);
             $table->string('payment_status')->default('pending')->default(null);
             $table->string('delivery_status')->default('pending')->default(null);
+            $table->string('email')->default(null);
             $table->timestamps();
         });
     }

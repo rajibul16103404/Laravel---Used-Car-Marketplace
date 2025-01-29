@@ -190,11 +190,11 @@ class CarListController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-        $qry = Carlist::with(['make', 'model', 'year', 'body_type', 'fuel_type']);
-    
+        $qry = Carlist::query();
+
         // Apply Filters
         if ($request->filled('heading')) {
-            $qry->where('carlists.heading', 'LIKE', '%' . $request->heading . '%');
+            $qry->where('heading', 'LIKE', '%' . $request->heading . '%');
         }
         if ($request->filled('year')) {
             $qry->whereHas('year', function ($query) use ($request) {
@@ -211,7 +211,7 @@ class CarListController extends Controller
                 $query->where('name', 'LIKE', '%' . $request->model . '%');
             });
         }
-    
+
         // Apply Sorting with Joins
         if ($request->filled('sortField') && $request->filled('sortDirection')) {
             $sortField = $request->input('sortField');
@@ -229,24 +229,25 @@ class CarListController extends Controller
             if (isset($sortableFields[$sortField])) {
                 $field = $sortableFields[$sortField];
                 if (isset($field['table']) && $field['table'] !== 'carlists') {
-                    // Join the related table
-                    $qry->join($field['table'], "{$field['table']}.id", '=', "carlists.{$field['foreign_key']}")
+                    // Use LEFT JOIN instead of JOIN
+                    $qry->leftJoin($field['table'], "{$field['table']}.id", '=', "carlists.{$field['foreign_key']}")
                         ->orderBy("{$field['table']}.{$field['column']}", $sortDirection);
                 } else {
                     $qry->orderBy("carlists.{$field['column']}", $sortDirection);
                 }
             }
+            
         } else {
-            $qry->orderBy('carlists.id', 'desc')->orderBy('carlists.created_at', 'desc');
+            $qry->orderBy('created_at', 'desc')->orderBy('id', 'desc');
         }
-    
-        // Include related models for eager loading
+
+        // Include Relationships
         $qry->with(['make', 'model', 'year', 'body_type', 'fuel_type']);
-    
-        // Paginate Data
-        $data = $qry->select('carlists.*')->where('status','!=','sold')->paginate($perPage);
-    
-        // Prepare Response
+
+        // Paginate Results
+        $data = $qry->select('carlists.*')->groupBy('carlists.id')->paginate($perPage);
+
+        // Response
         return response()->json([
             'pagination' => [
                 'total_count' => $data->total(),
@@ -260,6 +261,7 @@ class CarListController extends Controller
             'data' => $data->items(),
         ], 200);
     }
+
     
 
     
