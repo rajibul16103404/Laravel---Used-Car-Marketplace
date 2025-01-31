@@ -40,7 +40,12 @@ class HighwayMpgController extends Controller
         //     'data' => $highway_mpg,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  HighwayMpg::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = HighwayMpg::paginate($perPage);
 

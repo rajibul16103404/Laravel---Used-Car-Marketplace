@@ -81,7 +81,8 @@ class CarListController extends Controller
             'source' => 'nullable|string',
             'model_code' => 'nullable|string',
             'in_transit' => 'nullable|string',
-            'photo_links' => 'nullable|string',
+            'photo_links' => 'required|array',
+            'photo_links.*' =>'image|mimes:jpeg,png,jpg,gif|max:2048',
             'dealer_id' => 'nullable|string',
             'year' => 'nullable|string',
             'make' => 'nullable|string',
@@ -112,6 +113,8 @@ class CarListController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        
 
         $carlist = Carlist::create([
             'car_id' => $request->car_id,
@@ -153,7 +156,6 @@ class CarListController extends Controller
             'source' => $request->source,
             'model_code' => $request->model_code,
             'in_transit' => $request->in_transit,
-            'photo_links' => $request->photo_links,
             'dealer_id' => $request->dealer_id,
             'year' => $request->year,
             'make' => $request->make,
@@ -181,6 +183,19 @@ class CarListController extends Controller
             'powertrain_type' => $request->powertrain_type,
         ]);
 
+        $imagePaths = [];
+        if ($request->hasFile('photo_links')) {
+            foreach ($request->file('photo_links') as $image) {
+                $path = $image->store('productImages', 'public'); // Store images in storage/app/public/products
+                $imagePaths[] = asset(env('BASE_URL').'storage/' . $path);
+            }
+        }
+
+        // Save image URLs to product
+        $carlist->update([
+            'image_urls' => implode(',', $imagePaths), // Store URLs as comma-separated values
+        ]);
+
         return response()->json([
             'message' => 'New List Added Successfully',
             'data' => $carlist,
@@ -189,7 +204,13 @@ class CarListController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
+        // Check if the request is for the first page
+        if($request->page === '0'){
+            $perPage =  Carlist::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
         $qry = Carlist::query();
 
         // Apply Filters

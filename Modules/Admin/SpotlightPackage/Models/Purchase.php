@@ -10,6 +10,6 @@ class Purchase extends Model
     use HasFactory;
 
     protected $fillable=[
-        'purchase_id', 'user_id', 'car_id', 'package_id', 'purchase_status', 'payment_status'
+        'purchase_id', 'user_id', 'car_id', 'promotion_name', 'package_id', 'purchase_status', 'payment_status'
     ];
 }

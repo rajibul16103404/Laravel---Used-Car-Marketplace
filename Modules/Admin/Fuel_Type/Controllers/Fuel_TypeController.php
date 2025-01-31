@@ -40,7 +40,12 @@ class Fuel_TypeController extends Controller
         //     'data' => $fuel_type,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Fuel_type::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Fuel_type::paginate($perPage);
 

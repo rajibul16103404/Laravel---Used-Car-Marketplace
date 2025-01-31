@@ -40,7 +40,12 @@ class YearController extends Controller
         //     'data' => $category,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Year::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Year::paginate($perPage);
 

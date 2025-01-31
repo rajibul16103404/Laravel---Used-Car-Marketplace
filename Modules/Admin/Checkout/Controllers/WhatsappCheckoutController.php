@@ -38,6 +38,27 @@ class WhatsappCheckoutController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
     
+        
+
+    
+        $shipping = shipping::select('country', 'port', 'amount')->where('country_code', $request->country_code)
+            ->where('port_code', $request->port_code)
+            ->first();
+    
+        if (!$shipping) {
+            return response()->json(['error' => 'Shipping details not found'], 404);
+        }
+    
+        $availableCar = Carlist::find($request->car_id);
+    
+        if (!$availableCar) {
+            return response()->json(['error' => 'Car not found'], 404);
+        }
+    
+        if (in_array($availableCar->status, ['sold', 'queued'])) {
+            return response()->json(['message' => 'This car is already sold or queued for checkout'], 400);
+        }
+
         $user = ModelsAuth::where('email', $request->email)
             ->orWhere('phone', $request->phone)
             ->first();
@@ -60,25 +81,6 @@ class WhatsappCheckoutController extends Controller
             } catch (Exception $e) {
                 return response()->json(['error' => 'User creation or email failed'], 500);
             }
-        }
-
-    
-        $shipping = shipping::select('country', 'port', 'amount')->where('country_code', $request->country_code)
-            ->where('port_code', $request->port_code)
-            ->first();
-    
-        if (!$shipping) {
-            return response()->json(['error' => 'Shipping details not found'], 404);
-        }
-    
-        $availableCar = Carlist::find($request->car_id);
-    
-        if (!$availableCar) {
-            return response()->json(['error' => 'Car not found'], 404);
-        }
-    
-        if (in_array($availableCar->status, ['sold', 'queued'])) {
-            return response()->json(['message' => 'This car is already sold or queued for checkout'], 400);
         }
     
         $subtotal = $availableCar->price;
@@ -116,7 +118,7 @@ class WhatsappCheckoutController extends Controller
             'email' => $request->email
         ]);
 
-        $checkoutData = Checkout::select('order_id', 'amount')->where('email', $request->email)->orWhere('phone', $request->phone)->first();
+        $checkoutData = Checkout::select('order_id', 'amount')->where('email', $request->email)->orWhere('phone', $request->phone)->latest('id')->first();
 
         $Car = Carlist::select('vin', 'heading', 'price')->where('id', $request->car_id)->first();
     
@@ -152,6 +154,7 @@ class WhatsappCheckoutController extends Controller
     
         $checkOtp = Checkout::where('phone', $request->phone)
             ->where('otp', $request->otp)
+            ->latest('id')
             ->first();
     
         if (!$checkOtp) {
@@ -170,7 +173,7 @@ class WhatsappCheckoutController extends Controller
             return response(['message'=>'User not found with this phone number.']);
         }
     
-        return redirect()->route('payment.url',['order_id'=>$checkOtp->order_id]);
+        return redirect()->route('checkout.payment.url',['order_id'=>$checkOtp->order_id]);
     }
     
 }

@@ -40,7 +40,12 @@ class DriveTrainController extends Controller
         //     'data' => $drivetrain,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  DriveTrain::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = DriveTrain::paginate($perPage);
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PrivatCarController;
+use App\Http\Controllers\WhatsAppMediaController;
 use Modules\Admin\CarLists\Controllers\AllDropController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -10,12 +11,14 @@ use Modules\Admin\Body_Type\Controllers\Body_TypeController;
 use Modules\Admin\CartItem\Controllers\CartController;
 use Modules\Admin\CarLists\Controllers\CarListAutoController;
 use Modules\Admin\CarLists\Controllers\CarListController;
+use Modules\Admin\CarLists\Controllers\WhatsappCarListController;
 use Modules\Admin\CarModel\Controllers\CarModelController;
 use Modules\Admin\Checkout\Controllers\CheckoutController;
 use Modules\Admin\City_Mpg\Controllers\CityMpgController;
 use Modules\Admin\Color\ExteriorColor\Controllers\ExteriorColorController;
 use Modules\Admin\Color\InteriorColor\Controllers\InteriorColorController;
 use Modules\Admin\Doors\Controllers\DoorController;
+use Modules\Admin\FeaturedPackage\Controllers\FeaturedStripePaymentController;
 use Modules\Admin\Powertrain_Type\Controllers\PowertrainTypeController;
 use Modules\Auth\Controllers\AuthController;
 use Modules\Auth\Controllers\ForgotPasswordController;
@@ -52,7 +55,9 @@ use Modules\WhatsappBot\Controllers\TwilioWebhookController;
 use Modules\WhatsappBot\Controllers\WhatsappBotController;
 use Modules\WhatsappBot\Controllers\WhatsAppController;
 use Modules\Admin\Profile\Controllers\UserCarListContrioller;
+use Modules\Admin\SpotlightPackage\Controllers\PurchaseController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightPackageController;
+use Modules\Admin\SpotlightPackage\Controllers\SpotlightStripePaymentController;
 use Modules\Admin\TransactionList\Controllers\TransactionListController;
 
 /*
@@ -71,12 +76,41 @@ use Modules\Admin\TransactionList\Controllers\TransactionListController;
 // });
 
 
+// Whatsapp Image Download
+Route::post('/wa-upload', [WhatsAppMediaController::class, 'downloadImage'])->name('downloadImage.whatsapp');
+
+
+// Whatsapp Checkout
+Route::post('/wa-checkout', [WhatsappCheckoutController::class, 'checkout'])->name('checkout.whatsapp');
+Route::post('/verify-order', [WhatsappCheckoutController::class, 'verifyOrder'])->name('verify.whatsapp');
+
+// Whatsapp Carlist
+Route::post('/wa-car-add', [WhatsappCarListController::class, 'store'])->name('addCar.whatsapp');
+Route::post('/verify-car', [WhatsappCarListController::class, 'verifyCar'])->name('verifyCar.whatsapp');
+
+// Stripe Checkout
+Route::get('/create-checkout-session/{order_id}', [StripePaymentController::class, 'createCheckoutSession'])->name('checkout.payment.url');
+Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
+Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
+Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
+
+
+
+
+
+
+// Add to Cart
+    Route::post('/shipping-fee', [CartController::class, 'index']);
+    Route::get('/all-shipping-fee', [CartController::class, 'showAllShippingRates']);
+    Route::get('/platform-fee/{car_id}', [CartController::class, 'PlatformFee']);
+
 // demo car list
 Route::get('/cars', [PrivatCarController::class, 'index']);
 
 //Car List Routes
 Route::prefix('/public/car-list')->group(function(){
-    Route::get('/', [CarListController::class, 'index'])->name('index');
+    Route::get('/', [CarListController::class, 'index'])->name('public.car.index');
     Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
 });
 
@@ -378,7 +412,7 @@ Route::middleware(['api'])->group(function () {
             Route::delete('/{id}', [StdSeatingController::class, 'destroy'])->name('delete');
         });
 
-        //Powertrai Type Routes
+        //Powertrain Type Routes
         Route::prefix('/admin/powertrain-type')->group(function(){
             Route::post('/', [PowertrainTypeController::class, 'store'])->name('store');
             Route::get('/', [PowertrainTypeController::class, 'index'])->name('index');
@@ -441,12 +475,20 @@ Route::middleware(['api'])->group(function () {
             Route::get('/{id}', [SpotlightPackageController::class, 'show'])->name('single_view');
             Route::put('/{id}', [SpotlightPackageController::class, 'update'])->name('update');
             Route::delete('/{id}', [SpotlightPackageController::class, 'destroy'])->name('delete');
+            Route::post('/curl', [SpotlightPackageController::class, 'curlPhp'])->name('curl');
+
         });
 
         //Order List Model Routes
         Route::prefix('/admin/order-list')->group(function(){
             Route::get('/', [OrderListController::class, 'index'])->name('index');
             Route::get('/{id}', [OrderListController::class, 'show'])->name('single_view');
+        });
+
+        //Purchase List Model Routes
+        Route::prefix('/admin/purchase-list')->group(function(){
+            Route::get('/', [PurchaseController::class, 'index'])->name('index');
+            Route::get('/{id}', [PurchaseController::class, 'show'])->name('single_view');
         });
 
         //Transaction List Model Routes
@@ -638,6 +680,25 @@ Route::middleware(['api'])->group(function () {
             Route::get('/', [CityMpgController::class, 'index'])->name('index');
         });
 
+        //Featured Package Model Routes
+        Route::prefix('/featured-package')->group(function(){
+            Route::get('/', [FeaturedPackageController::class, 'index'])->name('index');
+            Route::get('/{id}', [FeaturedPackageController::class, 'show'])->name('single_view');
+        });
+
+        //Spotlight Package Model Routes
+        Route::prefix('/spotlight-package')->group(function(){
+            Route::get('/', [SpotlightPackageController::class, 'index'])->name('index');
+            Route::get('/{id}', [SpotlightPackageController::class, 'show'])->name('single_view');
+
+        });
+
+        //Purchase List Model Routes
+        Route::prefix('/purchase-list')->group(function(){
+            Route::get('/', [PurchaseController::class, 'index'])->name('index');
+            Route::get('/{id}', [PurchaseController::class, 'show'])->name('single_view');
+        });
+
 
         //Car List Routes
         Route::prefix('/car-list')->group(function(){
@@ -676,6 +737,11 @@ Route::middleware(['api'])->group(function () {
             Route::get('/carlist', [UserCarListContrioller::class, 'index'])->name('user.carlist');
         });
 
+
+        Route::post('/spotlightPurchase', [SpotlightPackageController::class, 'purchaseSpotlight']);
+        Route::post('/featuredPurchase', [FeaturedPackageController::class, 'purchaseFeatured']);
+        // Route::get('/create-checkout-session/{purchase_id}', [SpotlightStripePaymentController::class, 'createCheckoutSession'])->name('payment.spotlight');
+
         
         Route::get('/webhook-create', [StripePaymentController::class, 'createWebhookSecret']);
         Route::get('/webhook-list', [StripePaymentController::class, 'viewWebhookSecret']);
@@ -685,13 +751,12 @@ Route::middleware(['api'])->group(function () {
     });
 });
 
-// Whatsapp Checkout
-Route::post('/wa-checkout', [WhatsappCheckoutController::class, 'checkout'])->name('checkout.whatsapp');
-Route::post('/verify-order', [WhatsappCheckoutController::class, 'verifyOrder'])->name('verify.whatsapp');
-
-// Stripe Checkout
-Route::get('/create-checkout-session/{order_id}', [StripePaymentController::class, 'createCheckoutSession'])->name('payment.url');
-Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
-Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
+// Stripe Spotlight
+Route::get('/create-spotlight-checkout-session/{purchase_id}', [SpotlightStripePaymentController::class, 'createSpotlightCheckoutSession'])->name('spotlight.payment.url');
+Route::get('/create-featured-checkout-session/{purchase_id}', [FeaturedStripePaymentController::class, 'createFeaturedCheckoutSession'])->name('featured.payment.url');
+// Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+// Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
+
+

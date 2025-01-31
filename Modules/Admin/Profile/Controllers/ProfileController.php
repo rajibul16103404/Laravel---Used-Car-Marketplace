@@ -44,7 +44,12 @@ class ProfileController extends Controller
     public function orderList(Request $request)
     {
         $user_id = Auth::id();
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Checkout::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Checkout::with('carlist')->where('user_id', $user_id)->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($perPage);
 

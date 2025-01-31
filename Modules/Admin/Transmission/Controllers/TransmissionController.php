@@ -40,7 +40,12 @@ class TransmissionController extends Controller
         //     'data' => $transmission,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Transmission::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Transmission::paginate($perPage);
 

@@ -40,7 +40,12 @@ class PowertrainTypeController extends Controller
         //     'data' => $powertrain_type,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  PowertrainType::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = PowertrainType::paginate($perPage);
 

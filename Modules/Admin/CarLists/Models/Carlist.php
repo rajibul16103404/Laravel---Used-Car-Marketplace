@@ -83,6 +83,10 @@ class Carlist extends Model
         'featured',
         'spotlight',
         'view_count',
+        'otp',
+        'email',
+        'fullName',
+        'phone',
     ];
 
     // protected $fillable = [

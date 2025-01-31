@@ -40,7 +40,12 @@ class TrimController extends Controller
         //     'data' => $trim,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Trim::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Trim::paginate($perPage);
 

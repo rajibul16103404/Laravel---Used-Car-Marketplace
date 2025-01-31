@@ -40,7 +40,12 @@ class EngineController extends Controller
         //     'data' => $engine,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Engine::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Engine::paginate($perPage);
 

@@ -40,7 +40,12 @@ class DoorController extends Controller
         //     'data' => $door,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Door::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Door::paginate($perPage);
 

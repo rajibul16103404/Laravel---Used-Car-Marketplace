@@ -40,7 +40,12 @@ class SubscriptionController extends Controller
         //     'data' => $subscription,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Subscription::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Subscription::paginate($perPage);
 

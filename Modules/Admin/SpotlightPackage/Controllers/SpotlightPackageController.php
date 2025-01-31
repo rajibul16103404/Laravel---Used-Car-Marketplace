@@ -4,7 +4,10 @@ namespace Modules\Admin\SpotlightPackage\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Modules\Admin\SpotlightPackage\Models\Purchase;
 use Modules\Admin\SpotlightPackage\Models\Spotlight;
 
 class SpotlightPackageController extends Controller
@@ -44,7 +47,12 @@ class SpotlightPackageController extends Controller
         //     'data' => $Spotlight,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Spotlight::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Spotlight::paginate($perPage);
 
@@ -60,6 +68,18 @@ class SpotlightPackageController extends Controller
             'message' => 'Data Retrieved Successfully',
             'data' => $data->items(),
         ],200);
+    }
+
+    public function curlPhp(){
+        $response = Http::withHeaders([
+            'accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        ])->post('https://testpython.versatileitbd.com/whatsapp/message-for-payment-status', [
+            'userId' => (string) Auth::id(),
+            'message' => "Payment Completed.",
+        ]);
+
+        return $response->json();
     }
 
     public function show($id)
@@ -137,6 +157,48 @@ class SpotlightPackageController extends Controller
         return response()->json([
             'message' => 'Spotlight Deleted Successfully',
         ], 200);
+    }
+
+    public function purchaseSpotlight(Request $request){
+
+
+        $validator = Validator::make($request->all(),[
+            'package_id' => 'required|string|max:255',
+            'car_id' => 'required|string|max:255',
+            'promotion' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+
+        $userData = Auth::id();
+
+        $purchaseID = strtoupper(substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 10));
+
+        
+        
+        $purchase = Purchase::create([
+            'purchase_id' => $purchaseID,
+            'car_id'=>$request->car_id,
+            'promotion_name'=>$request->promotion,
+            'package_id'=>$request->package_id,
+            'user_id' => $userData,
+            'purchase_status'=> 'confirmed',
+            'payment_status'=>'pending'
+        ]);
+
+        if($purchase){
+            return redirect()->route('spotlight.payment.url',['purchase_id'=>$purchaseID],);
+        }
+        else{
+            return response([
+                'status'=> 'failed',
+                'message'=>'Failed to purchase'
+            ]);
+        }
+
     }
 
 

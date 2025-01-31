@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string("purchase_id")->default(null);
             $table->string("user_id")->default(null);
             $table->string("car_id")->default(null);
+            $table->string("promotion_name")->default(null);
             $table->string("package_id")->default(null);
             $table->string("purchase_status")->default(null);
             $table->string("payment_status")->default(null);

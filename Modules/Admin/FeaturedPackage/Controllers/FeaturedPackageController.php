@@ -4,8 +4,10 @@ namespace Modules\Admin\FeaturedPackage\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Modules\Admin\FeaturedPackage\Models\Featured;
+use Modules\Admin\SpotlightPackage\Models\Purchase;
 
 class FeaturedPackageController extends Controller
 {
@@ -44,7 +46,12 @@ class FeaturedPackageController extends Controller
         //     'data' => $featured,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Featured::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Featured::paginate($perPage);
 
@@ -137,6 +144,48 @@ class FeaturedPackageController extends Controller
         return response()->json([
             'message' => 'featured Deleted Successfully',
         ], 200);
+    }
+
+    public function purchaseFeatured(Request $request){
+
+
+        $validator = Validator::make($request->all(),[
+            'package_id' => 'required|string|max:255',
+            'car_id' => 'required|string|max:255',
+            'promotion' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+
+        $userData = Auth::id();
+
+        $purchaseID = strtoupper(substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 10));
+
+        
+        
+        $purchase = Purchase::create([
+            'purchase_id' => $purchaseID,
+            'car_id'=>$request->car_id,
+            'promotion_name'=>$request->promotion,
+            'package_id'=>$request->package_id,
+            'user_id' => $userData,
+            'purchase_status'=> 'confirmed',
+            'payment_status'=>'pending'
+        ]);
+
+        if($purchase){
+            return redirect()->route('featured.payment.url',['purchase_id'=>$purchaseID],);
+        }
+        else{
+            return response([
+                'status'=> 'failed',
+                'message'=>'Failed to purchase'
+            ]);
+        }
+
     }
 
 

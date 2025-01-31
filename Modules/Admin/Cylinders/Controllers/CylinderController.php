@@ -40,7 +40,12 @@ class CylinderController extends Controller
         //     'data' => $cylinder,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Cylinder::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Cylinder::paginate($perPage);
 

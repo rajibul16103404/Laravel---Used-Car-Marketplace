@@ -40,7 +40,12 @@ class EngineBlockController extends Controller
         //     'data' => $engine_block,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  EngineBlock::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = EngineBlock::paginate($perPage);
 

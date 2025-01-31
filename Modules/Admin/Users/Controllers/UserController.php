@@ -25,7 +25,12 @@ class UserController extends Controller
         //     'data' => $users,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Auth::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Auth::paginate($perPage);
 

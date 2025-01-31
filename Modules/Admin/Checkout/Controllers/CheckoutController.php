@@ -79,7 +79,7 @@ class CheckoutController extends Controller
 
         $platform = Subscription::where('name', 'Platform Fee')->first();
         // dd($shipping->amount);
-        $platformFee = ($subtotal/100)*floatval($platform->amount);
+        $platformFee = round(($subtotal/100)*floatval($platform->amount), 2);
         // dd($shipping->amount+$platformFee+$subtotal);
         
         
@@ -122,7 +122,7 @@ class CheckoutController extends Controller
             ]);
         }
 
-        return redirect()->route('payment.url',['order_id'=>$orderId],);
+        return redirect()->route('checkout.payment.url',['order_id'=>$orderId],);
 
         // $emptyCart = Cart::where('user_id', $userData);
         //                 if ($emptyCart->exists()) {
