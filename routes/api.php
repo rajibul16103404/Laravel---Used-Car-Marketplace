@@ -78,6 +78,7 @@ use Modules\Admin\TransactionList\Controllers\TransactionListController;
 
 // Whatsapp Image Download
 Route::post('/wa-upload', [WhatsAppMediaController::class, 'downloadImage'])->name('downloadImage.whatsapp');
+Route::get('/test-connection', [WhatsAppMediaController::class, 'testConnection']);
 
 
 // Whatsapp Checkout
@@ -758,5 +759,9 @@ Route::get('/create-featured-checkout-session/{purchase_id}', [FeaturedStripePay
 // Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
+
+Route::get('/ping', function() {
+    return response()->json(['message' => 'pong']);
+});
 
 
