@@ -11,13 +11,14 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next, $role)
     {
-        // Ensure a user is authenticated
-        if (!Auth::check()) {
+
+        // dd(auth()->id());
+
+        // Ensure a user is authenticated via JWT
+        if (!$user = Auth::guard('api')->user()) {
             return response()->json(['error' => 'Unauthorized: User not authenticated'], 401);
         }
 
-        // Retrieve the authenticated user
-        $user = Auth::user();
 
         // Debugging: Log the user's role
         Log::info('Authenticated User Role:', ['role' => $user->role]);

@@ -40,7 +40,12 @@ class ExteriorColorController extends Controller
         //     'data' => $color,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  ExteriorColor::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = ExteriorColor::paginate($perPage);
 

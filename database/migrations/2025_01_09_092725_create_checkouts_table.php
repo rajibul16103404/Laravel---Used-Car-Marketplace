@@ -16,6 +16,8 @@ return new class extends Migration
         Schema::create('checkouts', function (Blueprint $table) {
             $table->id();
             $table->string('order_id')->default(null);
+            $table->enum('order_from', ['whatsapp','app'])->default('whatsapp');
+            $table->string('car_id')->default(null);
             $table->string('amount')->default(null);
             $table->integer('user_id')->default(null);
             $table->string('full_name')->default(null);
@@ -24,13 +26,15 @@ return new class extends Migration
             $table->string('city')->default(null);
             $table->string('state')->default(null);
             $table->string('zip')->default(null);
-            $table->string('country')->default(null);
+            $table->string('country_code')->default(null);
+            $table->string('port_code')->default(null);
             $table->string('shipping_fee')->default(0);
             $table->string('platform_fee')->default(0);
-            $table->string('tax')->default(0);
+            $table->string('otp')->default(null);
             $table->string('order_status')->default('pending')->default(null);
             $table->string('payment_status')->default('pending')->default(null);
             $table->string('delivery_status')->default('pending')->default(null);
+            $table->string('email')->default(null);
             $table->timestamps();
         });
     }

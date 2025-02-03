@@ -79,7 +79,14 @@ class Carlist extends Model
         'highway_mpg',
         'city_mpg',
         'powertrain_type',
+        'status',
+        'featured',
+        'spotlight',
         'view_count',
+        'otp',
+        'email',
+        'fullName',
+        'phone',
     ];
 
     // protected $fillable = [

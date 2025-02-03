@@ -40,7 +40,12 @@ class StdSeatingController extends Controller
         //     'data' => $std_seating,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  StdSeating::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = StdSeating::paginate($perPage);
 

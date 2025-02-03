@@ -40,7 +40,12 @@ class OverallHeightController extends Controller
         //     'data' => $overall_height,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  OverallHeight::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = OverallHeight::paginate($perPage);
 

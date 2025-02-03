@@ -3,93 +3,83 @@
 namespace Modules\Admin\CartItem\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Modules\Admin\CarLists\Models\Carlist;
 use Modules\Admin\CartItem\Models\Cart;
-
-
+use Modules\Admin\CartItem\Models\shipping;
+use Modules\Admin\Subscriptions\Models\Subscription;
 
 class CartController extends Controller
 {
-    
-    public function index()
-    {
-        // Retrieve all cart items for the logged-in user, including related carlist data
-        $cartItems = Cart::with('carlist')
-            ->where('user_id', Auth::id())
-            ->get();
 
-            $subTotal = $cartItems->sum(function ($cartItem) {
-                return $cartItem->carlist->price;
-            });
+    public function PlatformFee($car_id){
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $cartItems,
-            'subTtotal' => $subTotal
+        $subtotal=0;
+
+        $availableCar = Carlist::find($car_id);
+
+        $subtotal = $subtotal + $availableCar->price;
+
+        $platform = Subscription::where('name', 'Platform Fee')->first();
+
+        $platformFee = ($subtotal/100)*floatval($platform->amount);
+
+        return response([
+            'status'=>'Success',
+            'platform'=>$platformFee,
         ]);
     }
-
-
-    // Add item to the cart
-    public function add(Request $request)
+    
+    public function index(Request $request)
     {
         $request->validate([
-            'carlist_id' => 'required|exists:carlists,id',
+            'country' => 'nullable|string',
+            'port' => 'nullable|string',
         ]);
 
-        $carlist = Carlist::findOrFail($request->carlist_id);
+        $country = $request->country;
+        $port = $request->port;
 
-        // Check if the carlist is already in the cart
-        $cartItem = Cart::where('user_id', Auth::id())
-            ->where('carlist_id', $carlist->id)
-            ->first();
+        // Attempt to find the shipping rate
+        $rate = shipping::where('country_code', $country)->where('port_code', $port)->first();
 
-        if(!$cartItem)
-        {
-            // Add new item
-            Cart::create([
-                'user_id' => Auth::id(),
-                'carlist_id' => $carlist->id,
-            ]);
-        
-            $count= Cart::with('carlist')
-                ->where('user_id', Auth::id())
-                ->count(); 
+        // if (!$rate) {
+        //     // Return 404 response if no rate is found
+        //     return response()->json([
+        //         'error' => 'Shipping rate not found for the specified country and port.',
+        //     ], 404);
+        // }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Car added to cart',
-                'count'=>$count
-            ]);
+        // Return the found shipping rate
+        if($country!=null && $port!=null){
+            $amount = $rate->amount;
         }
         else{
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Already added in cart',
-            ]);
+            $amount=0;
         }
-    }
 
-    // Remove item from the cart
-    public function remove($id)
-    {
 
-        Cart::where('id',  $id)
-            ->where('user_id', Auth::id())
-            ->delete();
-
-        $count= Cart::with('carlist')
-                ->where('user_id', Auth::id())
-                ->count();
+        
 
         return response()->json([
             'status' => 'success',
-            'message' => 'carlist removed from cart',
-            'count' => $count
+            'data'=>$amount,
         ]);
     }
+
+
+
+    public function showAllShippingRates(){
+        $rates = shipping::all();
+        return response([
+            'status'=>'success',
+            'data'=>$rates
+        ]);
+    }
+
+
 
 }

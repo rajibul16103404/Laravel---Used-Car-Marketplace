@@ -50,13 +50,17 @@ class AuthController extends Controller
 
                 $count= Cart::where('user_id', $user->id)->count();
 
-                $credentials = $request->only('email', 'password');
+                // $credentials = $request->only('email', 'password');
 
-                if ($token = $this->guard()->attempt($credentials)) {
-                    return $this->respondWithToken($token, $count);
-                }
+                // if ($token = $this->guard()->attempt($credentials)) {
+                //     return $this->respondWithToken($token, $count);
+                // }
 
-                return response()->json(['error' => 'Unauthorized'], 401);
+                $token = auth()->login($user);
+
+                return $this->respondWithToken($token,$count);
+
+                // return response()->json(['error' => 'Unauthorized'], 401);
         
                 // // Generate token
                 // $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
@@ -191,7 +195,7 @@ class AuthController extends Controller
     protected function respondWithToken($token, $count)
     {
         return response()->json([
-            'access_token' => $token,
+            'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => $this->guard()->factory()->getTTL() * 60,
             'user' => auth()->user(),

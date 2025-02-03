@@ -40,7 +40,12 @@ class InteriorColorController extends Controller
         //     'data' => $color,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  InteriorColor::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = InteriorColor::paginate($perPage);
 

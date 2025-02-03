@@ -40,7 +40,12 @@ class OverallLengthController extends Controller
         //     'data' => $overall_length,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  OverallLength::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = OverallLength::paginate($perPage);
 

@@ -40,7 +40,12 @@ class SellerTypeController extends Controller
         //     'data' => $seller_type,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  SellerType::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = SellerType::paginate($perPage);
 

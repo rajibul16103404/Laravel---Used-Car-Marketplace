@@ -11,7 +11,7 @@ class Checkout extends Model
     use HasFactory;
 
     protected $fillable=[
-        'order_id','amount','user_id','full_name','phone','street','city','state','zip','country','order_status','payment_status','delivery_status'
+        'order_id', 'order_from', 'car_id', 'amount','user_id','full_name','phone','street','city','state','zip','country_code', 'port_code','order_status','payment_status','delivery_status', 'shipping_fee', 'platform_fee', 'total', 'email', 'otp'
     ];
 
     public function carlist()

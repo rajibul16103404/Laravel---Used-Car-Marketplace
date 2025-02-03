@@ -40,7 +40,13 @@ class CarModelController extends Controller
         //     'data' => $carmodel,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        // Check if the request is for the first page
+        if($request->page === '0'){
+            $perPage =  Carmodel::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Carmodel::paginate($perPage);
 

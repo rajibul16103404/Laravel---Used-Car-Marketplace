@@ -233,6 +233,10 @@ return [
         Modules\Admin\Checkout\CheckoutServiceProvider::class,
         Modules\Admin\SingleUser\SingleUserServiceProvider::class,
         Modules\Admin\Profile\ProfileServiceProvider::class,
+        Modules\Admin\FeaturedPackage\FeaturedPackageServiceProvider::class,
+        Modules\Admin\SpotlightPackage\SpotlightPackageServiceProvider::class,
+        Modules\Admin\OrderList\OrderListServiceProvider::class,
+        Modules\Admin\TransactionList\TransactionListServiceProvider::class,
 
 
 

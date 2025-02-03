@@ -40,7 +40,12 @@ class InventoryTypeController extends Controller
         //     'data' => $inventory_type,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  InventoryType::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = InventoryType::paginate($perPage);
 

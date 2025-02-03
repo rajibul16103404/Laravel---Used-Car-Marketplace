@@ -40,7 +40,12 @@ class MakeController extends Controller
         //     'data' => $make,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Make::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Make::paginate($perPage);
 

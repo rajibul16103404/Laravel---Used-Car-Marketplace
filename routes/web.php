@@ -60,6 +60,13 @@ Route::get('/clear_cache', function() {
     return 'Cache Cleared successfully!';
 });
 
+
+// Set JWT Secret
+Route::get('/jwt-secret', function() {
+    Artisan::call('jwt:secret');
+    return 'JWT secret set successfully!';
+});
+
 // Truncate Table
 
 

@@ -40,7 +40,13 @@ class Body_TypeController extends Controller
         //     'body_type' => $body_type,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        // Check if the request is for the first page
+        if($request->page === '0'){
+            $perPage =  Body_Type::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Body_Type::paginate($perPage);
 

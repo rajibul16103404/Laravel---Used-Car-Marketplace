@@ -40,7 +40,12 @@ class VersionController extends Controller
         //     'data' => $version,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Version::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Version::paginate($perPage);
 

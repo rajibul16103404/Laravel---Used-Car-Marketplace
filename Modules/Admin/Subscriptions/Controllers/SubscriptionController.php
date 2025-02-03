@@ -13,7 +13,7 @@ class SubscriptionController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'name' => 'required|string|max:255',
-            'amount' => 'required|numeric',
+            'amount' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -40,7 +40,12 @@ class SubscriptionController extends Controller
         //     'data' => $subscription,
         // ], 200);
 
-        $perPage = $request->input('per_page', 10);
+        if($request->page === '0'){
+            $perPage =  Subscription::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
         $data = Subscription::paginate($perPage);
 
@@ -85,7 +90,7 @@ class SubscriptionController extends Controller
         // Validate request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'amount' => 'required|numeric',
+            'amount' => 'required|string',
         ]);
 
         if ($validator->fails()) {
