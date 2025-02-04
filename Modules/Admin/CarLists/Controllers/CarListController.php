@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
@@ -82,7 +83,7 @@ class CarListController extends Controller
             'model_code' => 'nullable|string',
             'in_transit' => 'nullable|string',
             'photo_links' => 'required|array',
-            'photo_links.*' =>'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo_links.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'dealer_id' => 'nullable|string',
             'year' => 'nullable|string',
             'make' => 'nullable|string',
@@ -113,6 +114,21 @@ class CarListController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        $imagePaths = [];
+
+        if ($request->hasFile('photo_links')) {
+            foreach ($request->file('photo_links') as $image) {
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->storeAs('uploads', $imageName, 'public');
+                $imagePaths[] = asset('storage/uploads/' . $imageName);
+            }
+        }
+
+
+
+        // dd($request->file('photo_links'));
+
 
         
 
@@ -156,6 +172,7 @@ class CarListController extends Controller
             'source' => $request->source,
             'model_code' => $request->model_code,
             'in_transit' => $request->in_transit,
+            'photo_links'=>json_encode($imagePaths),
             'dealer_id' => $request->dealer_id,
             'year' => $request->year,
             'make' => $request->make,
@@ -183,18 +200,29 @@ class CarListController extends Controller
             'powertrain_type' => $request->powertrain_type,
         ]);
 
-        $imagePaths = [];
-        if ($request->hasFile('photo_links')) {
-            foreach ($request->file('photo_links') as $image) {
-                $path = $image->store('productImages', 'public'); // Store images in storage/app/public/products
-                $imagePaths[] = asset(env('BASE_URL').'storage/' . $path);
-            }
-        }
+        // $imagePaths = [];
+        // if ($request->hasFile('photo_links')) {
+        //     $photos = is_array($request->file('photo_links')) ? $request->file('photo_links') : [$request->file('photo_links')];
+
+        //     foreach ($photos as $image) {
+        //         $path = $image->store('AppUpload', 'app/public'); // Store images in storage/app/public/products
+        //         $imagePaths[] = asset(env('BASE_URL').'storage/' . $path);
+
+
+        //         // Save image URLs to product
+        //         $carlist->update([
+        //             'photo_links' => implode(',', $imagePaths), // Store URLs as comma-separated values
+        //         ]);
+        //     }
+        // }
 
         // Save image URLs to product
-        $carlist->update([
-            'image_urls' => implode(',', $imagePaths), // Store URLs as comma-separated values
-        ]);
+        // $carlist->update([
+        //     'image_urls' => implode(',', $imagePaths), // Store URLs as comma-separated values
+        // ]);
+        // $carlist->update([
+        //     'photo_links' => json_encode($imagePaths),
+        // ]);
 
         return response()->json([
             'message' => 'New List Added Successfully',
@@ -284,7 +312,85 @@ class CarListController extends Controller
     }
 
     
+    public function featuredCars(Request $request)
+    {
+        // dd('executed');
+        if($request->page === '0'){
+            $perPage =  Carlist::where('featured', 1)->count();
+            // dd($perPage);
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
+        
+        
+        $data = Carlist::where('featured', 1)->paginate($perPage);
+
+        // Response
+        return response()->json([
+            'pagination' => [
+                'total_count' => $data->total(),
+                'total_page' => $data->lastPage(),
+                'current_page' => $data->currentPage(),
+                'current_page_count' => $data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage() + 1 : null,
+                'previous_page' => $data->onFirstPage() ? null : $data->currentPage(),
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ], 200);
+    }
+
+    public function spotlightCars(Request $request)
+    {
+        if($request->page === '0'){
+            $perPage =  Carlist::where('spotlight', 1)->count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
+
+        $data = Carlist::where('spotlight', 1)->paginate($perPage);
+
+        return response()->json([
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function mostViewedCars(Request $request)
+    {
+        if($request->page === '0'){
+            $perPage =  Carlist::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
+
+        $data = Carlist::orderBy('view_count', 'desc')->paginate($perPage);
+
+        return response()->json([
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
     
 
     public function show($id)

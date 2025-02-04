@@ -35,7 +35,23 @@ class WhatsAppMediaController extends Controller
                 return response()->json(['error' => 'Car not found'], 404);
             }
 
-            $fileName = $mediaId . '.jpg';
+            $file_type = Http::withToken($accessToken)->get("https://graph.facebook.com/v18.0/{$mediaId}");
+            
+            $mimeData = $file_type->json();
+
+            $mimeType = $mimeData['mime_type'];
+
+            $extensionMap = [
+                'image/jpeg' => 'jpeg',
+                'image/jpg' => 'jpg',
+                'image/png'  => 'png',
+                'image/webp' => 'webp',
+                'image/gif'  => 'gif',
+            ];
+            
+            $extension = isset($extensionMap[$mimeType]) ? $extensionMap[$mimeType] : 'jpg';
+
+            $fileName = $mediaId .'.'. $extension;
             $filePath = $saveDir . '/' . $fileName;
             $fileUrl = asset('storage/WhatsappImages/' . $fileName);
             $fullFileUrl = env('BASE_URL') . $fileUrl;
@@ -95,7 +111,6 @@ class WhatsAppMediaController extends Controller
                 'file_path' => $fullFileUrl
             ]);
         } catch (\Exception $e) {
-            phpinfo();
 
             $maxExecutionTime = ini_get('max_execution_time');
 

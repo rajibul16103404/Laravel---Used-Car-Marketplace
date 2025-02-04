@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PrivatCarController;
 use App\Http\Controllers\WhatsAppMediaController;
 use Modules\Admin\CarLists\Controllers\AllDropController;
@@ -71,6 +72,9 @@ use Modules\Admin\TransactionList\Controllers\TransactionListController;
 |
 */
 
+// Test File Upload
+Route::post('/upload', [ImageUploadController::class, 'uploadImages']);
+
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
@@ -112,7 +116,12 @@ Route::get('/cars', [PrivatCarController::class, 'index']);
 Route::prefix('/public/car-list')->group(function(){
     Route::get('/', [CarListController::class, 'index'])->name('public.car.index');
     Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
+    
 });
+
+Route::get('/featured', [CarListController::class, 'featuredCars'])->name('featured.cars');
+Route::get('/spotlight', [CarListController::class, 'spotlightCars'])->name('spotlight.cars');
+Route::get('/trending', [CarListController::class, 'mostViewedCars'])->name('trending.cars');
 
 
 // Webhook
@@ -131,6 +140,7 @@ Route::get('/send', [WhatsappBotController::class, 'index'])->name('demo');
 Route::get('/dealer', [CarListAutoController::class, 'get_dealer'])->name('dealer_store');
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 
@@ -508,7 +518,8 @@ Route::middleware(['api'])->group(function () {
         // Route::get('/admin', function () {
         Route::prefix('/admin')->group(function(){
             Route::get('/all-drop', [AllDropController::class, 'index'])->name('showAllDrop');
-            Route::get('/all-cars', [CarListAutoController::class, 'index'])->name('showAllCars');
+            Route::get('/marketCheck', [CarListAutoController::class, 'marketCheck'])->name('MarketCheck');
+            Route::get('/autoDev', [CarListAutoController::class, 'autoDev'])->name('AutoDev');
             Route::get('/vin', [CarListAutoController::class, 'get_vin'])->name('vin_store');
             
             // return response()->json(['message' => 'Welcome, Admin']);
@@ -758,5 +769,7 @@ Route::get('/create-featured-checkout-session/{purchase_id}', [FeaturedStripePay
 // Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
+
+
 
 
