@@ -3,6 +3,7 @@
 namespace Modules\Admin\Profile\Controllers;
 
 use App\Http\Controllers\Controller;
+use Modules\Admin\Profile\Models\UserVerified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
@@ -38,6 +39,7 @@ use Modules\Admin\Trim\Models\Trim;
 use Modules\Admin\Vehicle_Type\Models\VehicleType;
 use Modules\Admin\Version\Models\Version;
 use Modules\Admin\Year\Models\Year;
+use Modules\Auth\Models\Auth as ModelsAuth;
 
 class ProfileController extends Controller
 {
@@ -108,5 +110,133 @@ class ProfileController extends Controller
             'data'=>$data
         ]);
 
+    }
+
+    public function uploadVerificationDocs(Request $request){
+        $verification_id= strtoupper(substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 10));
+        $request->validate([
+            'photo_id'      => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'address_doc'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'business_doc'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'photo_id.required' => 'You must upload your photo ID.',
+            'address_doc.required' => 'You must upload your address verification document.',
+            'business_doc.required' => 'You must upload your business verification document.',
+        ]);
+
+        $uploadedFiles = [];
+
+        $uploadedFiles['verification_id'] = $verification_id;
+        
+
+        $uploadedFiles['user_id'] = Auth::id();
+
+        // Handle each file separately and store them
+        if ($request->hasFile('photo_id')) {
+            $photoId = $request->file('photo_id');
+            $photoIdName = time() . '_photo_id.' . $photoId->getClientOriginalExtension();
+            $photoIdPath = $photoId->storeAs('uploads', $photoIdName, 'public');
+            $uploadedFiles['photo_id'] = asset('storage/' . $photoIdPath);
+        }
+
+        if ($request->hasFile('address_doc')) {
+            $addressDoc = $request->file('address_doc');
+            $addressDocName = time() . '_address_doc.' . $addressDoc->getClientOriginalExtension();
+            $addressDocPath = $addressDoc->storeAs('uploads', $addressDocName, 'public');
+            $uploadedFiles['address_doc'] = asset('storage/' . $addressDocPath);
+        }
+
+        if ($request->hasFile('business_doc')) {
+            $businessDoc = $request->file('business_doc');
+            $businessDocName = time() . '_business_doc.' . $businessDoc->getClientOriginalExtension();
+            $businessDocPath = $businessDoc->storeAs('uploads', $businessDocName, 'public');
+            $uploadedFiles['business_doc'] = asset('storage/' . $businessDocPath);
+        }
+
+
+
+        // Store file URLs in the database
+        $uploadedRecord = UserVerified::create($uploadedFiles);
+        // dd($uploadedRecord);
+
+        return response()->json([
+            'message' => 'Files uploaded and stored successfully',
+            'files' => $uploadedFiles,
+            'database_entry' => $uploadedRecord
+        ]);
+
+        // return redirect()->route('verified.payment.url',['verification_id'=>$verification_id],);
+    }
+
+
+    public function verifyUser($user_id){
+        $status = UserVerified::select('status', 'user_id')->where('user_id', $user_id)->where('payment_status', 'paid')->first();
+
+        
+
+        $docs = UserVerified::select('photo_id', 'address_doc', 'business_doc')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
+
+        // dd($docs);
+
+        $user = ModelsAuth::select('name', 'email', 'street','state', 'city','zip','country')->where('id',$user_id)->first();
+
+        return response([
+            'status'=>'success',
+            'docs'=> $docs,
+            'user'=>$user,
+            'verifyStatus'=>$status
+        ]);
+        
+    }
+
+    public function verifyUserList(){
+        $user_id = UserVerified::select('user_id')->distinct()->pluck('user_id'); 
+
+        $user = ModelsAuth::whereIn('id', $user_id)
+                        ->select('id', 'name', 'email', 'street', 'state', 'city', 'zip', 'country')
+                        ->get();
+
+
+        // $user = ModelsAuth::select('name', 'email', 'street','state', 'city','zip','country')->where('id',$user_id)->first();
+
+        return response([
+            'status'=>'success',
+            'data'=>$user
+        ]);
+        
+    }
+
+
+    public function acceptDoc($user_id){
+        $status = UserVerified::where('user_id', $user_id)->where('payment_status', 'paid')->first();
+
+        $updStatus = $status->update([
+            'status'=>'accepted'
+        ]);
+
+        $user = ModelsAuth::where('id', $user_id)->first();
+        $updUserStatus = $user->update([
+            'verified' => 'accepted'
+        ]);
+
+        return response(['message'=> 'Status Changed To Accepted Successfully.',  'status'=>$status, 'statusUser'=>$user]);
+    }
+
+    public function rejectDoc($user_id){
+        $status = UserVerified::where('user_id', $user_id)->where('payment_status', 'paid')->first();
+
+        $updStatus = $status->update([
+            'status'=>'rejected'
+        ]);
+
+        $user = ModelsAuth::where('id', $user_id)->first();
+
+
+        // dd($user);
+        $updUserStatus = $user->update([
+            'verified' => 'rejected'
+        ]);
+
+        return response(['message'=> 'Status Changed To Rejected Successfully.', 'status'=>$status, 'statusUser'=>$user]);
     }
 }

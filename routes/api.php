@@ -58,6 +58,7 @@ use Modules\WhatsappBot\Controllers\WhatsAppController;
 use Modules\Admin\Profile\Controllers\UserCarListContrioller;
 use Modules\Admin\SpotlightPackage\Controllers\PurchaseController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightPackageController;
+use Modules\Admin\Profile\Controllers\VerifiedStripePaymentController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightStripePaymentController;
 use Modules\Admin\TransactionList\Controllers\TransactionListController;
 
@@ -94,7 +95,7 @@ Route::post('/verify-car', [WhatsappCarListController::class, 'verifyCar'])->nam
 
 // Stripe Checkout
 Route::get('/create-checkout-session/{order_id}', [StripePaymentController::class, 'createCheckoutSession'])->name('checkout.payment.url');
-Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+Route::post('stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
 Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
@@ -512,6 +513,10 @@ Route::middleware(['api'])->group(function () {
         Route::prefix('/admin')->group(function(){
             Route::get('/profile', [SingleUserController::class, 'index'])->name('singleuser');
             Route::put('/profile',[SingleUserController::class, 'update'])->name('updateProfile');
+            Route::get('/verifyUser/{user_id}',[ProfileController::class, 'verifyUser'])->name('verify.user');
+            Route::get('/verifyUserList',[ProfileController::class, 'verifyUserList'])->name('verify.user.list');
+            Route::get('/acceptDoc/{user_id}',[ProfileController::class, 'acceptDoc'])->name('accept.doc');
+            Route::get('/rejectDoc/{user_id}',[ProfileController::class, 'rejectDoc'])->name('reject.doc');
         });
 
 
@@ -746,6 +751,8 @@ Route::middleware(['api'])->group(function () {
             Route::get('/profile/order-list',[ProfileController::class, 'orderList'])->name('orderList');
             Route::get('/profile/order-item/{order_id}',[ProfileController::class, 'orderItem'])->name('orderItem');
             Route::get('/carlist', [UserCarListContrioller::class, 'index'])->name('user.carlist');
+            Route::post('/profile/verify',[ProfileController::class, 'uploadVerificationDocs'])->name('verify.docs');
+            Route::get('/profile/verifyAmount',[SubscriptionController::class, 'showAmount'])->name('shhow.amount');
         });
 
 
@@ -765,6 +772,7 @@ Route::middleware(['api'])->group(function () {
 // Stripe Spotlight
 Route::get('/create-spotlight-checkout-session/{purchase_id}', [SpotlightStripePaymentController::class, 'createSpotlightCheckoutSession'])->name('spotlight.payment.url');
 Route::get('/create-featured-checkout-session/{purchase_id}', [FeaturedStripePaymentController::class, 'createFeaturedCheckoutSession'])->name('featured.payment.url');
+Route::get('/create-verified-checkout-session/{verification_id}', [VerifiedStripePaymentController::class, 'createVerifiedCheckoutSession'])->name('verified.payment.url');
 // Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
 // Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');

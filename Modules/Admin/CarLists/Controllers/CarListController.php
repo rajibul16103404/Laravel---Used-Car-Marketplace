@@ -3,6 +3,7 @@
 namespace Modules\Admin\CarLists\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -411,6 +412,48 @@ class CarListController extends Controller
         //Find product by ID
         $car_list = Carlist::find($id);
 
+        $today = Carbon::now();
+        $timestampInSeconds = $today->timestamp;
+        $dayCountFeatured = (int)($car_list->featured_expire) - (int)$timestampInSeconds;
+
+        if($dayCountFeatured>0){
+            $daysLeftFeatured = floor($dayCountFeatured / 86400);
+            $remainingSeconds = $dayCountFeatured % 86400; // Remaining seconds after removing full days
+            $hoursLeft = floor($remainingSeconds / 3600); // 3600 seconds in an hour
+            $remainingSeconds = $remainingSeconds % 3600; // Remaining seconds after removing full hours
+            $minutesLeft = floor($remainingSeconds / 60); // 60 seconds in a minute
+
+            // Concatenate into a single string
+            $timeLeftFormattedFeatured = "{$daysLeftFeatured} days, {$hoursLeft} hours, {$minutesLeft} minutes";
+        }
+        else{
+            $timeLeftFormattedFeatured = "expired";
+            $car_list->update([
+                'featured'=>0,
+                'featured_expire'=>'expired'
+            ]);
+        }
+
+        $dayCountSpotlight = (int)($car_list->spotlight_expire) - (int)$timestampInSeconds;
+        if($dayCountSpotlight>0){
+            $daysLeftSpotlight = floor($dayCountSpotlight / 86400); // Calculate full days
+
+            $remainingSeconds = $dayCountSpotlight % 86400; // Get remaining seconds after full days
+            $hoursLeft = floor($remainingSeconds / 3600); // Convert remaining seconds to hours
+            $remainingSeconds = $remainingSeconds % 3600; // Get remaining seconds after full hours
+            $minutesLeft = floor($remainingSeconds / 60); // Convert remaining seconds to minutes
+
+            // Concatenate into a single string
+            $timeLeftFormattedSpotlight = "{$daysLeftFeatured} days, {$hoursLeft} hours, {$minutesLeft} minutes";
+        }
+        else{
+            $timeLeftFormattedSpotlight = "expired";
+            $car_list->update([
+                'spotlight'=>0,
+                'spotlight_expire'=>'expired'
+            ]);
+        }
+
         if($car_list)
         {
             $inventory_type = InventoryType::find($car_list->inventory_type);
@@ -483,6 +526,10 @@ class CarListController extends Controller
                 'city_mpg' => $city_mpg,
                 'powertrain_type' => $powertrain_type,  
             ],
+            'expireIn'=>[
+                'featured'=>$timeLeftFormattedFeatured,
+                'spotlight'=>$timeLeftFormattedSpotlight,
+            ]
         ], 200);
     }
 

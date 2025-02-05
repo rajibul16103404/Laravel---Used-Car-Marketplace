@@ -35,6 +35,7 @@ return new class extends Migration
             $table->string('dealer_type')->nullable();
             $table->string('imageURL')->nullable();
             $table->string('password')->nullable();
+            $table->string('verified')->default('not_verified');
             
             $table->rememberToken()->nullable();
             $table->timestamps();

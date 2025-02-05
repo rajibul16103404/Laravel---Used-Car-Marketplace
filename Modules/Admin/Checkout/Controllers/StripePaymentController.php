@@ -11,7 +11,10 @@ use Modules\Admin\CartItem\Models\shipping;
 use Modules\Admin\Checkout\Models\Checkout;
 use Modules\Admin\Checkout\Models\OrderItems;
 use Modules\Admin\Checkout\Models\Transaction;
+use Modules\Admin\FeaturedPackage\Models\Featured;
+use Modules\Admin\Profile\Models\UserVerified;
 use Modules\Admin\SpotlightPackage\Models\Purchase;
+use Modules\Admin\SpotlightPackage\Models\Spotlight;
 use Modules\Admin\Subscriptions\Models\Subscription;
 use Modules\Auth\Models\Auth;
 use Stripe\Stripe;
@@ -130,6 +133,50 @@ class StripePaymentController extends Controller
         return response('Webhook handled', 200);
     }
 
+//     public function webhook(Request $request)
+// {
+//     $endpointSecret = env('STRIPE_WEBHOOK_SECRET');
+//     $payload = $request->getContent();
+//     $sigHeader = $request->header('Stripe-Signature');
+
+//     try {
+//         // Verify and construct the Stripe event
+//         $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
+//     } catch (SignatureVerificationException $e) {
+//         Log::error('Stripe Webhook Signature Verification Failed', ['error' => $e->getMessage()]);
+//         return response()->json(['error' => 'Invalid signature'], 400);
+//     }
+
+//     // Log the event for debugging
+//     Log::info('Stripe Webhook Event Received', ['event' => $event]);
+
+//     // Process the event based on type
+//     switch ($event->type) {
+//         case 'payment_intent.succeeded':
+//             $paymentIntent = $event->data->object;
+//             Log::info('Payment succeeded', ['payment_intent' => $paymentIntent->id]);
+//             // Handle successful payment (e.g., update order status)
+//             break;
+
+//         case 'payment_intent.payment_failed':
+//             $paymentIntent = $event->data->object;
+//             Log::warning('Payment failed', ['payment_intent' => $paymentIntent->id]);
+//             // Handle failed payment (e.g., notify the user)
+//             break;
+
+//         case 'checkout.session.completed':
+//             $session = $event->data->object;
+//             Log::info('Checkout session completed', ['session_id' => $session->id]);
+//             // Handle completed checkout (e.g., activate subscription)
+//             break;
+
+//         default:
+//             Log::warning('Unhandled Stripe Event', ['type' => $event->type]);
+//     }
+
+//     return response()->json(['message' => 'Webhook handled'], 200);
+// }
+
     public function webhookResponse($event)
     {
         $charge = $event->data->object;
@@ -241,6 +288,8 @@ class StripePaymentController extends Controller
             case 'featured':
                 switch ($event->type) {
                     case 'payment_intent.succeeded':
+
+                        $timestamp = $charge->created;
                         
         
                         Transaction::create([
@@ -266,6 +315,32 @@ class StripePaymentController extends Controller
                             } else {
                                 Log::warning("Purchase record not found for order_id: {$confirm->order_id}");
                             }
+
+
+                            Log::info('Timestamp: ', ['timestamp' => $timestamp]);
+
+
+                            $package_duration = Spotlight::find($updStatus->package_id);
+
+                            // Check if the package is found and extract the duration attribute, then cast it to an integer
+                            $duration = $package_duration ? (int) $package_duration->duration : 0;
+
+                            Log::info('Package Duration: ', ['duration' => $duration]);
+
+                            // Now you can use $duration as an integer, e.g., for adding days
+
+
+                            // Add package days
+                            $future_timestamp = strtotime("+{$duration} days", $timestamp);
+
+                            // Log the future timestamp
+                            Log::info('Package Expires Date: ', ['expires' => $future_timestamp ? date('Y-m-d H:i:s', $future_timestamp) : 'Not Found']);
+
+
+                            // Convert the new date and time to seconds (Unix timestamp)
+                            $new_timestamp_seconds = $future_timestamp;
+
+                            Log::info('Package Expires Seconds: ', ['expires' => $new_timestamp_seconds ? $new_timestamp_seconds : 'Not Found']);
         
                             $soldOut = Carlist::find($confirm->car_id);
         
@@ -273,6 +348,7 @@ class StripePaymentController extends Controller
                             if ($soldOut) {
                                 $soldOut->update([
                                     'featured' => 1,
+                                    'featured_expire' => $new_timestamp_seconds
                                 ]);    
         
                             } else {
@@ -314,6 +390,8 @@ class StripePaymentController extends Controller
                 switch ($event->type) {
                     case 'payment_intent.succeeded':
 
+                        $timestamp = $charge->created;
+
                         Transaction::create([
                             'transaction_id' => $transactionID,
                             'payment_id' => $charge->id,
@@ -338,6 +416,32 @@ class StripePaymentController extends Controller
                             } else {
                                 Log::warning("Purchase record not found for order_id: {$confirm->order_id}");
                             }
+
+                            Log::info('Timestamp: ', ['timestamp' => $timestamp]);
+
+
+                            $package_duration = Spotlight::find($updStatus->package_id);
+
+                            // Check if the package is found and extract the duration attribute, then cast it to an integer
+                            $duration = $package_duration ? (int) $package_duration->duration : 0;
+
+                            Log::info('Package Duration: ', ['duration' => $duration]);
+
+                            // Now you can use $duration as an integer, e.g., for adding days
+
+
+                            // Add package days
+                            $future_timestamp = strtotime("+{$duration} days", $timestamp);
+
+                            // Log the future timestamp
+                            Log::info('Package Expires Date: ', ['expires' => $future_timestamp ? date('Y-m-d H:i:s', $future_timestamp) : 'Not Found']);
+
+
+                            // Convert the new date and time to seconds (Unix timestamp)
+                            $new_timestamp_seconds = $future_timestamp;
+
+                            Log::info('Package Expires Seconds: ', ['expires' => $new_timestamp_seconds ? $new_timestamp_seconds : 'Not Found']);
+
         
                             $soldOut = Carlist::find($confirm->car_id);
         
@@ -345,6 +449,7 @@ class StripePaymentController extends Controller
                             if ($soldOut) {
                                 $soldOut->update([
                                     'spotlight' => 1,
+                                    'spotlight_expire' => $new_timestamp_seconds
                                 ]);
                             } else {
                                 Log::warning("Car Not Found For : {$confirm->car_id}");
@@ -401,29 +506,30 @@ class StripePaymentController extends Controller
                         $confirm = Transaction::where('order_id', $charge->metadata->order_id)->first();
         
                         if ($confirm && $confirm->status === 'succeeded') {
-                            $updStatus = Purchase::where('order_id', $confirm->order_id)->first();
+                            $updStatus = UserVerified::where('verification_id', $confirm->order_id)->first();
         
                             if ($updStatus) {
                                 $updStatus->update([
                                     'payment_status' => 'paid',
+                                    'status' => 'processing'
                                 ]);
                             } else {
-                                Log::warning("Checkout record not found for order_id: {$confirm->order_id}");
+                                Log::warning("Verification record not found for verification_id: {$confirm->order_id}");
                             }
         
-                            $soldOut = Carlist::find($confirm->user_id);
+                            $soldOut = Auth::find($confirm->user_id);
         
                             // Log::info($soldOut);
                             if ($soldOut) {
                                 $soldOut->update([
-                                    'verified' => 1,
+                                    'verified' => 'processing',
                                 ]);
         
         
                                 
         
                             } else {
-                                Log::warning("Car Not Found For : {$confirm->car_id}");
+                                Log::warning("User Not Found For : {$confirm->car_id}");
                             }
                         } else {
                             Log::warning("Transaction not found or not successful for order_id: {$charge->metadata->order_id}");

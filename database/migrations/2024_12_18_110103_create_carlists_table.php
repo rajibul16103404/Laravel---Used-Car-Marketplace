@@ -83,6 +83,8 @@ return new class extends Migration
             $table->string('status')->default(null);
             $table->integer('featured')->default(0);
             $table->integer('spotlight')->default(0);
+            $table->date('featured_expire')->default(null);
+            $table->date('spotlight_expire')->default(null);
             $table->timestamps();
         });
     }

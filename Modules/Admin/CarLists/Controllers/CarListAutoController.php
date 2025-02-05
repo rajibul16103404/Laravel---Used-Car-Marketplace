@@ -474,7 +474,7 @@ class CarListAutoController extends Controller
             // do{
                 $response = Http::timeout(300)->get($url);
             // dd($response);
-            Log::info($response);
+            // Log::info($response);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -587,7 +587,8 @@ class CarListAutoController extends Controller
                                 ['car_id'=>$car['id'],
                                             'vin'=>$car['vin'],
                                             'heading'=>$car['make'].$car['model'].$car['year'],
-                                            'price'=>$car['price']??null,
+                                            // 'price'=>$car['price']??null,
+                                            'price' => isset($car['price']) ? (int) filter_var($car['price'], FILTER_SANITIZE_NUMBER_INT) : null,
                                             'miles'=>$car['milease']??null,
                                             'msrp'=>$car['msrp']??null,
                                             'vdp_url'=>$car['vdp_url']??null,
@@ -621,7 +622,11 @@ class CarListAutoController extends Controller
                                             'ref_miles_dt'=>$car['ref_miles_dt']??null,
                                             'source'=>$car['source']??null,
                                             'in_transit'=>$car['in_transit']??null,
-                                            'photo_links'=>isset($car['photoUrls']) ? implode(',', $car['photoUrls']) : null,
+                                            // 'photo_links'=>isset($car['photoUrls']) ? implode(',', $car['photoUrls']) : null,
+                                            'photo_links' => isset($car['photoUrls']) && is_array($car['photoUrls']) 
+                                                            ? implode(',', array_slice($car['photoUrls'], 1)) 
+                                                            : null,
+
                                             // 'photo_links'=>$car['media']['photo_links'],
                                             // 'dealer_id'=>$car['dealer']['id'],
                                             'year'=>$yearData??null,

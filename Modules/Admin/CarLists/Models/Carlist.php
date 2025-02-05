@@ -82,6 +82,8 @@ class Carlist extends Model
         'status',
         'featured',
         'spotlight',
+        'featured_expire',
+        'spotlight_expire',
         'view_count',
         'otp',
         'email',

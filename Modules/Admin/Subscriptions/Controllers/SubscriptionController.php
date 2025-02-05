@@ -81,6 +81,24 @@ class SubscriptionController extends Controller
         ], 200);
     }
 
+    public function showAmount()
+    {
+        // Find product by ID
+        $subscription = Subscription::where('name', 'verified')->first();
+
+        // Check if product exists
+        if (!$subscription) {
+            return response()->json([
+                'message' => 'subscription not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Subscription data retrieved successfully',
+            'data' => $subscription,
+        ], 200);
+    }
+
 
     public function update(Request $request, $id)
     {
