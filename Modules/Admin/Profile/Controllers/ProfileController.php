@@ -32,6 +32,7 @@ use Modules\Admin\Overall_Length\Models\OverallLength;
 use Modules\Admin\Overall_Width\Models\OverallWidth;
 use Modules\Admin\Powertrain_Type\Models\PowertrainType;
 use Modules\Admin\Seller_Type\Models\SellerType;
+use Modules\Admin\SpotlightPackage\Models\Purchase;
 use Modules\Admin\Std_seating\Models\StdSeating;
 use Modules\Admin\Subscriptions\Models\Subscription;
 use Modules\Admin\Transmission\Models\Transmission;
@@ -178,7 +179,7 @@ class ProfileController extends Controller
 
         // dd($docs);
 
-        $user = ModelsAuth::select('name', 'email', 'street','state', 'city','zip','country')->where('id',$user_id)->first();
+        $user = ModelsAuth::select('name', 'email', 'street','state', 'city','zip','country','verified')->where('id',$user_id)->first();
 
         return response([
             'status'=>'success',
@@ -189,20 +190,38 @@ class ProfileController extends Controller
         
     }
 
-    public function verifyUserList(){
+
+
+    public function verifyUserList(Request $request){
+
+        if($request->page === '0'){
+            $perPage =  BodySubType::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
+
         $user_id = UserVerified::select('user_id')->distinct()->pluck('user_id'); 
 
-        $user = ModelsAuth::whereIn('id', $user_id)
-                        ->select('id', 'name', 'email', 'street', 'state', 'city', 'zip', 'country')
-                        ->get();
+        $data = ModelsAuth::whereIn('id', $user_id)
+                        ->select('id', 'name', 'email', 'street', 'state', 'city', 'zip', 'country','verified')
+                        ->paginate($perPage);
 
 
         // $user = ModelsAuth::select('name', 'email', 'street','state', 'city','zip','country')->where('id',$user_id)->first();
 
-        return response([
-            'status'=>'success',
-            'data'=>$user
-        ]);
+        return response()->json([
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
         
     }
 
@@ -238,5 +257,61 @@ class ProfileController extends Controller
         ]);
 
         return response(['message'=> 'Status Changed To Rejected Successfully.', 'status'=>$status, 'statusUser'=>$user]);
+    }
+
+    public function countTotal(){
+        $user = ModelsAuth::where('role', 0)->count();
+
+        $car = Carlist::count();
+
+        $latestCar = Carlist::orderBy('created_at', 'desc')->limit(5)->get();
+
+        $orders = Checkout::count();
+
+        $verify = UserVerified::count();
+
+        $platformFee = Checkout::sum('platform_fee');
+
+        return response([
+            'status'=>'success',
+            'data'=>[
+                'user'=>$user,
+                'car'=>$car,
+                'order'=>$orders,
+                'verify'=>$verify,
+                'earning'=>$platformFee,
+                'latestCar'=>$latestCar
+            ]
+        ]);
+    }
+
+
+    public function userDashboard(){
+        $user = ModelsAuth::where('role', 0)->where('id', Auth::id())->first();
+
+        $car = Carlist::where('dealer_id', $user->id)->count();
+
+        $latestCar = Carlist::where('dealer_id', $user->id)->orderBy('created_at', 'desc')->limit(5)->get();
+
+        $orders = Checkout::where('user_id', $user->id)->count();
+
+        $purchase = Purchase::where('user_id', $user->id)->count();
+
+        $purchaseSum = Purchase::where('user_id', $user->id)->sum('amount');
+
+        $orderSum = Checkout::where('user_id', $user->id)->sum('amount');
+
+        return response([
+            'status'=>'success',
+            'data'=>[
+                'user'=>$user->verified,
+                'car'=>$car,
+                'order'=>$orders,
+                'purchase'=>$purchase,
+                'packagePurchase'=>$purchaseSum,
+                'orderCar'=>$orderSum,
+                'latestCar'=>$latestCar
+            ]
+        ]);
     }
 }

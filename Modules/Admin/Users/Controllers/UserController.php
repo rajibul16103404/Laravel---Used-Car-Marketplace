@@ -32,7 +32,7 @@ class UserController extends Controller
             $perPage = $request->input('per_page', 10);
         }
 
-        $data = Auth::paginate($perPage);
+        $data = Auth::where('role', 0)->paginate($perPage);
 
         return response()->json([
             'pagination' => [

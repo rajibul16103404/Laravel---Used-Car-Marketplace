@@ -18,10 +18,10 @@ use Modules\Auth\Mail\welcome_mail;
 
 class AuthController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login','register']]);
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:api', ['except' => ['login','register','verify']]);
+    // }
     public function login(Request $request)
     {
         $user = ModelAuth::where('email', $request->email)->first();
@@ -179,7 +179,7 @@ class AuthController extends Controller
         ])->first();
 
         if (!$user) {
-            return response()->json(['message' => 'Invalid email or code'], 401);
+            return response()->json(['message' => 'Invalid email or code']);
         }
 
         $verify = $user->update([

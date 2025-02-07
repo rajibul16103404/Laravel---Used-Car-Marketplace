@@ -177,6 +177,11 @@ class SpotlightPackageController extends Controller
 
         $purchaseID = strtoupper(substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 10));
 
+        $packagePrice = Spotlight::where('id', $request->package_id)->first();
+
+        // dd($request->package_id);
+
+        // dd($packagePrice->price);
         
         
         $purchase = Purchase::create([
@@ -184,6 +189,7 @@ class SpotlightPackageController extends Controller
             'car_id'=>$request->car_id,
             'promotion_name'=>$request->promotion,
             'package_id'=>$request->package_id,
+            'amount'=>$packagePrice->price,
             'user_id' => $userData,
             'purchase_status'=> 'confirmed',
             'payment_status'=>'pending'

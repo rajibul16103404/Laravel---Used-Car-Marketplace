@@ -151,10 +151,10 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPasswor
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
 
 // Email Verification Route
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return response()->json(['message' => 'Email successfully verified.']);
-})->name('verification.verify');
+// Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+//     $request->fulfill();
+//     return response()->json(['message' => 'Email successfully verified.']);
+// })->name('verification.verify');
 
 // Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
 //     $request->fulfill();
@@ -167,7 +167,7 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
 Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return response()->json(['message' => 'Verification email resent.']);
-})->middleware('auth:sanctum');
+})->middleware('api');
 
 
 // Route::prefix('/car-list')->group(function(){
@@ -289,7 +289,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Body Sub Type Model Routes
-        Route::prefix('/admin/body-sub-type')->group(function(){
+        Route::prefix('/admin/body-subtype')->group(function(){
             Route::post('/', [BodySubTypeController::class, 'store'])->name('store');
             Route::get('/', [BodySubTypeController::class, 'index'])->name('index');
             Route::get('/{id}', [BodySubTypeController::class, 'show'])->name('single_view');
@@ -316,7 +316,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Drive Train Routes
-        Route::prefix('/admin/drive-train')->group(function(){
+        Route::prefix('/admin/drivetrain')->group(function(){
             Route::post('/', [DriveTrainController::class, 'store'])->name('store');
             Route::get('/', [DriveTrainController::class, 'index'])->name('index');
             Route::get('/{id}', [DriveTrainController::class, 'show'])->name('single_view');
@@ -361,7 +361,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Door Routes
-        Route::prefix('/admin/door')->group(function(){
+        Route::prefix('/admin/doors')->group(function(){
             Route::post('/', [DoorController::class, 'store'])->name('store');
             Route::get('/', [DoorController::class, 'index'])->name('index');
             Route::get('/{id}', [DoorController::class, 'show'])->name('single_view');
@@ -370,7 +370,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Cylinder Routes
-        Route::prefix('/admin/cylinder')->group(function(){
+        Route::prefix('/admin/cylinders')->group(function(){
             Route::post('/', [CylinderController::class, 'store'])->name('store');
             Route::get('/', [CylinderController::class, 'index'])->name('index');
             Route::get('/{id}', [CylinderController::class, 'show'])->name('single_view');
@@ -466,7 +466,7 @@ Route::middleware(['api'])->group(function () {
             Route::post('/', [CarListController::class, 'store'])->name('store');
             Route::get('/', [CarListController::class, 'index'])->name('index');
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
-            Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+            Route::post('/{id}', [CarListController::class, 'update'])->name('update');
             Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
         });
 
@@ -517,6 +517,7 @@ Route::middleware(['api'])->group(function () {
             Route::get('/verifyUserList',[ProfileController::class, 'verifyUserList'])->name('verify.user.list');
             Route::get('/acceptDoc/{user_id}',[ProfileController::class, 'acceptDoc'])->name('accept.doc');
             Route::get('/rejectDoc/{user_id}',[ProfileController::class, 'rejectDoc'])->name('reject.doc');
+            Route::get('/dashboard',[ProfileController::class, 'countTotal'])->name('dashboard');
         });
 
 
@@ -595,7 +596,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Body Sub Type Model Routes
-        Route::prefix('/body-sub-type')->group(function(){
+        Route::prefix('/body-subtype')->group(function(){
             Route::post('/', [BodySubTypeController::class, 'store'])->name('store');
             Route::get('/', [BodySubTypeController::class, 'index'])->name('index');
         });
@@ -637,19 +638,19 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Engine Block Routes
-        Route::prefix('/engine-bock')->group(function(){
+        Route::prefix('/engine-block')->group(function(){
             Route::post('/', [EngineBlockController::class, 'store'])->name('store');
             Route::get('/', [EngineBlockController::class, 'index'])->name('index');
         });
 
         //Door Routes
-        Route::prefix('/door')->group(function(){
+        Route::prefix('/doors')->group(function(){
             Route::post('/', [DoorController::class, 'store'])->name('store');
             Route::get('/', [DoorController::class, 'index'])->name('index');
         });
 
         //Cylinder Routes
-        Route::prefix('/cylinder')->group(function(){
+        Route::prefix('/cylinders')->group(function(){
             Route::post('/', [CylinderController::class, 'store'])->name('store');
             Route::get('/', [CylinderController::class, 'index'])->name('index');
         });
@@ -682,6 +683,11 @@ Route::middleware(['api'])->group(function () {
         Route::prefix('/std-seating')->group(function(){
             Route::post('/', [StdSeatingController::class, 'store'])->name('store');
             Route::get('/', [StdSeatingController::class, 'index'])->name('index');
+        });
+
+        Route::prefix('/powertrain-type')->group(function(){
+            Route::post('/', [PowertrainTypeController::class, 'store'])->name('store');
+            Route::get('/', [PowertrainTypeController::class, 'index'])->name('index');
         });
 
         //Highway Mileage Model Routes
@@ -721,7 +727,8 @@ Route::middleware(['api'])->group(function () {
             Route::post('/', [CarListController::class, 'store'])->name('store');
             Route::get('/', [CarListController::class, 'index'])->name('index');
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
-            Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+            Route::post('/{id}', [CarListController::class, 'update'])->name('update');
+            Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
         });
 
 
@@ -753,6 +760,7 @@ Route::middleware(['api'])->group(function () {
             Route::get('/carlist', [UserCarListContrioller::class, 'index'])->name('user.carlist');
             Route::post('/profile/verify',[ProfileController::class, 'uploadVerificationDocs'])->name('verify.docs');
             Route::get('/profile/verifyAmount',[SubscriptionController::class, 'showAmount'])->name('shhow.amount');
+            Route::get('/dashboard',[ProfileController::class, 'userDashboard'])->name('dashboard');
         });
 
 
