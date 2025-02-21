@@ -22,6 +22,21 @@ use Modules\Admin\Fuel_Type\Models\Fuel_type;
 
 class CarListScrappedDataController extends Controller
 {
+    private function getLastCounter()
+    {
+        $logFile = storage_path('logs/car_scraper.log');
+        if (file_exists($logFile)) {
+            $lastCounter = file_get_contents($logFile);
+            return is_numeric($lastCounter) ? (int)$lastCounter : 0;
+        }
+        return 0;
+    }
+
+    private function storeCounter($counter)
+    {
+        $logFile = storage_path('logs/car_scraper.log');
+        file_put_contents($logFile, $counter);
+    }
     public function index()
     {
         try {
@@ -34,6 +49,8 @@ class CarListScrappedDataController extends Controller
             if (!is_array($cars)) {
                 return response()->json(['error' => 'Invalid JSON format.'], 400);
             }
+
+            $counter = $this->getLastCounter();
 
             $insertedCars = [];
             foreach ($cars as $car) {
@@ -75,9 +92,11 @@ class CarListScrappedDataController extends Controller
                     'updated_at' => $car['updated_at'] ?? null
                 ]);
 
+                $counter++;
                 $insertedCars[] = $carlist;
             }
-            return response()->json(['message' => 'Car listings added successfully', 'data' => $insertedCars], 201);
+            $this->storeCounter($counter);
+            return response()->json(["message" => "{$counter} Car listings added successfully", "data" => $insertedCars], 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Something went wrong.', 'message' => $e->getMessage()], 500);
         }
