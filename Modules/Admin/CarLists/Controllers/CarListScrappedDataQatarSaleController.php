@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Modules\Admin\CarLists\Models\Carlist;
 use Modules\Admin\CarModel\Models\Carmodel;
 use Modules\Admin\Color\ExteriorColor\Models\ExteriorColor;
+use Modules\Admin\Color\InteriorColor\Models\InteriorColor;
 use Modules\Admin\Cylinders\Models\Cylinder;
 use Modules\Admin\Make\Models\Make;
 use Modules\Auth\Models\Auth;
@@ -20,7 +21,7 @@ use Modules\Admin\Cylinders\Models\Cylinders;
 use Modules\Admin\Doors\Models\Door;
 use Modules\Admin\Fuel_Type\Models\Fuel_type;
 
-class CarListScrappedDataController extends Controller
+class CarListScrappedDataQatarSaleController extends Controller
 {
     private function getLastCounter()
     {
@@ -28,7 +29,7 @@ class CarListScrappedDataController extends Controller
         
         if (file_exists($logFile)) {
             $logData = json_decode(file_get_contents($logFile), true);
-            return isset($logData['qatarliving']) ? (int)$logData['qatarliving'] : 0;
+            return isset($logData['qatarsale']) ? (int)$logData['qatarsale'] : 0;
         }
         
         return 0;
@@ -38,13 +39,13 @@ class CarListScrappedDataController extends Controller
     {
         $logFile = storage_path('logs/car_scraper.log');
         
-        $logData = ['qatarliving' => $counter]; // Store counter inside 'qatarliving' key
+        $logData = ['qatarsale' => $counter]; // Store counter inside 'qatarliving' key
         file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT));
     }
     public function index()
     {
         try {
-            $response = Http::get("https://api.milltech.ai/api/read-json/qatarliving/all_cars.json");
+            $response = Http::get("https://api.milltech.ai/api/read-json/qatarsale/all_cars.json");
             if (!$response->successful()) {
                 return response()->json(['error' => 'Failed to fetch JSON data.'], 400);
             }
@@ -58,28 +59,27 @@ class CarListScrappedDataController extends Controller
 
             $insertedCars = [];
             foreach ($cars as $car) {
-                $make = $this->getOrCreateMake($car['make_id'] ?? null);
-                $model = $this->getOrCreateModel($car['model_id'] ?? null);
-                $color = $this->getOrCreateColor($car['color_id'] ?? null);
-                $year = $this->getOrCreateYear($car['year_id'] ?? null);
-                $transmission = $this->getOrCreateTransmission($car['transmission_id'] ?? null);
-                $fuel_type = $this->getOrCreateFuelType($car['fuel_type_id'] ?? null);
-                $engine_size = $this->getOrCreateEngineSize($car['engine_size_id'] ?? null);
-                $doors = $this->getOrCreateDoors($car['door_id'] ?? null);
-                $cylinders = $this->getOrCreateCylinders($car['cylinder_id'] ?? null);
+                $make = $this->getOrCreateMake($car['Make'] ?? null);
+                $model = $this->getOrCreateModel($car['Model'] ?? null);
+                $color = $this->getOrCreateColor($car['Color'] ?? null);
+                $year = $this->getOrCreateYear($car['Year'] ?? null);
+                $transmission = $this->getOrCreateTransmission($car['Gear Type'] ?? null);
+                $InteriorColor = $this->getOrCreateInteriorColor($car['Inside Color'] ?? null);
+                $body_type = $this->getOrCreateBodyType($car['Type'] ?? null);
+                $fuel_type = $this->getOrCreateFuelType($car['Fuel Type'] ?? null);
+                $cylinders = $this->getOrCreateCylinders($car['Cylinder'] ?? null);
                 $heading = $this->extractHeadingFromUrl($car['url']);
                 $photo_links = json_encode($car['images'] ?? []);
                 
                 $user_id = null;
-                if($car['source'] === "qatarliving") {
-                    $user = Auth::select('id')->where('email', 'qal@demo.com')->first();
-                    $user_id = $user->id ?? null;
-                }
-
+                $user = Auth::select('id')->where('email', 'qal@demo.com')->first();
+                $user_id = $user->id ?? null;
+                
                 $carlist = Carlist::create([
                     'heading' => $heading,
                     'price' => $car['price'] ?? null,
-                    'miles' => $car['mileage'] ?? null,
+                    'miles' => $car['Mileage'] ?? null,
+                    'scraped_at' => $car['scraped_at'] ?? null,
                     'exterior_color' => $color,
                     'seller_type' => $car['seller_type_id'] ?? null,
                     'photo_links' => $photo_links,
@@ -89,8 +89,8 @@ class CarListScrappedDataController extends Controller
                     'model' => $model,
                     'transmission' => $transmission,
                     'fuel_type' => $fuel_type,
-                    'engine_size' => $engine_size,
-                    'doors' => $doors,
+                    'interior_color' => $InteriorColor,
+                    'doors' => $body_type,
                     'cylinders' => $cylinders,
                     'created_at' => $car['created_at'] ?? null,
                     'updated_at' => $car['updated_at'] ?? null
@@ -130,11 +130,11 @@ class CarListScrappedDataController extends Controller
         return $fuelTypeName ? Fuel_type::firstOrCreate(['name' => $fuelTypeName])->id : null;
     }
 
-    private function getOrCreateEngineSize($engineSizeValue) {
-        return $engineSizeValue ? EngineSize::firstOrCreate(['name' => $engineSizeValue])->id : null;
+    private function getOrCreateInteriorColor($engineSizeValue) {
+        return $engineSizeValue ? InteriorColor::firstOrCreate(['name' => $engineSizeValue])->id : null;
     }
 
-    private function getOrCreateDoors($doorCount) {
+    private function getOrCreateBodyType($doorCount) {
         return $doorCount ? Door::firstOrCreate(['name' => $doorCount])->id : null;
     }
 
@@ -145,7 +145,7 @@ class CarListScrappedDataController extends Controller
     private function extractHeadingFromUrl($url) {
         $parts = explode('/', $url);
         $lastPart = end($parts);
-        $heading = substr($lastPart, strpos($lastPart, '_') + 1);
-        return ucwords(str_replace('_', ' ', $heading));
+        $heading = $lastPart;
+        return ucwords( $heading);
     }
 }

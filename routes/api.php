@@ -14,6 +14,7 @@ use Modules\Admin\CartItem\Controllers\CartController;
 use Modules\Admin\CarLists\Controllers\CarListAutoController;
 use Modules\Admin\CarLists\Controllers\CarListController;
 use Modules\Admin\CarLists\Controllers\CarListScrappedDataController;
+use Modules\Admin\CarLists\Controllers\CarListScrappedDataQatarSaleController;
 use Modules\Admin\CarLists\Controllers\WhatsappCarListController;
 use Modules\Admin\CarModel\Controllers\CarModelController;
 use Modules\Admin\Checkout\Controllers\CheckoutController;
@@ -545,6 +546,7 @@ Route::middleware(['api'])->group(function () {
         Route::prefix('/admin')->group(function(){
             Route::get('/scrap', [ScrapDataController::class, 'index'])->name('showScrappedDataLog');
             Route::get('/import-scrap-data', [CarListScrappedDataController::class, 'index'])->name('importScrappedData');
+            Route::get('/import-scrap-data-qas', [CarListScrappedDataQatarSaleController::class, 'index'])->name('importScrappedDataQatarSale');
         });
     });
 
