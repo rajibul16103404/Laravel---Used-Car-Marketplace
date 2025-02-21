@@ -27,3 +27,13 @@ php_value upload_max_filesize 64M
 SetEnv HTTP_PROXY ""
 SetEnv HTTPS_PROXY ""
 SetEnv NO_PROXY "localhost,127.0.0.1,graph.facebook.com"
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-XSRF-TOKEN"
+    
+    # Handle OPTIONS method
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule>
