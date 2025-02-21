@@ -83,7 +83,6 @@ Route::post('/upload', [ImageUploadController::class, 'uploadImages']);
 
 // Whatsapp Image Download
 Route::post('/wa-upload', [WhatsAppMediaController::class, 'downloadImage'])->name('downloadImage.whatsapp');
-Route::get('/test-connection', [WhatsAppMediaController::class, 'testConnection']);
 
 
 // Whatsapp Checkout
@@ -788,10 +787,6 @@ Route::get('/create-verified-checkout-session/{verification_id}', [VerifiedStrip
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
 
-Route::get('/ping', function() {
-    return response()->json(['message' => 'pong']);
-});
-
 
 
 
@@ -977,14 +972,6 @@ Route::delete('/cron-jobs/{id}', function ($id) use ($cronFile) {
 
 
 
-Route::options('{any}', function (Request $request) {
-    \Log::info('OPTIONS request received', [
-        'headers' => $request->headers->all(),
-        'origin' => $request->header('Origin')
-    ]);
-    
-    return response(null, 200)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-XSRF-TOKEN');
+Route::options('{any}', function () {
+    return response()->json(['status' => 'CORS OK'], 200);
 })->where('any', '.*');
