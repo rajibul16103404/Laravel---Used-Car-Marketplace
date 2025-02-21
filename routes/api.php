@@ -977,6 +977,14 @@ Route::delete('/cron-jobs/{id}', function ($id) use ($cronFile) {
 
 
 
-Route::options('{any}', function () {
-    return response()->json(['status' => 'CORS OK'], 200);
+Route::options('{any}', function (Request $request) {
+    \Log::info('OPTIONS request received', [
+        'headers' => $request->headers->all(),
+        'origin' => $request->header('Origin')
+    ]);
+    
+    return response(null, 200)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-XSRF-TOKEN');
 })->where('any', '.*');
