@@ -60,6 +60,18 @@ Route::get('/clear_cache', function() {
     return 'Cache Cleared successfully!';
 });
 
+// Clear Route
+Route::get('/clear_route', function() {
+    Artisan::call('route:clear');
+    return 'Route Cleared successfully!';
+});
+
+// Storage Link
+Route::get('/storage_link', function () {
+    Artisan::call('storage:link');
+    return 'Storage link created successfully!';
+});
+
 
 // Set JWT Secret
 Route::get('/jwt-secret', function() {

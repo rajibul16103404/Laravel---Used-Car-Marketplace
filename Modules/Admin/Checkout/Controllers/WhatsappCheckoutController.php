@@ -41,13 +41,15 @@ class WhatsappCheckoutController extends Controller
         
 
     
-        $shipping = shipping::select('country', 'port', 'amount')->where('country_code', $request->country_code)
-            ->where('port_code', $request->port_code)
-            ->first();
+        // $shipping = shipping::select('country', 'port', 'amount')->where('country_code', $request->country_code)
+        //     ->where('port_code', $request->port_code)
+        //     ->first();
+
+        $shipping = 2550;
     
-        if (!$shipping) {
-            return response()->json(['error' => 'Shipping details not found'], 404);
-        }
+        // if (!$shipping) {
+        //     return response()->json(['error' => 'Shipping details not found'], 404);
+        // }
     
         $availableCar = Carlist::find($request->car_id);
     
@@ -98,11 +100,13 @@ class WhatsappCheckoutController extends Controller
         Checkout::create([
             'order_id' => $orderId,
             'car_id' => $request->car_id,
-            'amount' => $shipping->amount + $platformFee + $subtotal,
+            // 'amount' => $shipping->amount + $platformFee + $subtotal,
+            'amount'=>$shipping,
             'user_id' => $user->id,
             'country_code' => $request->country_code,
             'port_code' => $request->port_code,
-            'shipping_fee' => $shipping->amount,
+            // 'shipping_fee' => $shipping->amount,
+            'shipping_fee'=>$shipping,
             'platform_fee' => $platformFee,
             'payment_status' => 'pending',
             'delivery_status' => 'pending',

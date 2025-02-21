@@ -77,7 +77,7 @@ class InteriorColorController extends Controller
 
         return response()->json([
             'message' => 'Interior Color data retrieved successfully',
-            'product' => $interior_color,
+            'data' => $interior_color,
         ], 200);
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PrivatCarController;
 use App\Http\Controllers\WhatsAppMediaController;
 use Modules\Admin\CarLists\Controllers\AllDropController;
@@ -57,6 +58,7 @@ use Modules\WhatsappBot\Controllers\WhatsAppController;
 use Modules\Admin\Profile\Controllers\UserCarListContrioller;
 use Modules\Admin\SpotlightPackage\Controllers\PurchaseController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightPackageController;
+use Modules\Admin\Profile\Controllers\VerifiedStripePaymentController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightStripePaymentController;
 use Modules\Admin\TransactionList\Controllers\TransactionListController;
 
@@ -70,6 +72,9 @@ use Modules\Admin\TransactionList\Controllers\TransactionListController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+// Test File Upload
+Route::post('/upload', [ImageUploadController::class, 'uploadImages']);
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -91,7 +96,7 @@ Route::post('/verify-car', [WhatsappCarListController::class, 'verifyCar'])->nam
 
 // Stripe Checkout
 Route::get('/create-checkout-session/{order_id}', [StripePaymentController::class, 'createCheckoutSession'])->name('checkout.payment.url');
-Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+Route::post('stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
 Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
@@ -113,7 +118,12 @@ Route::get('/cars', [PrivatCarController::class, 'index']);
 Route::prefix('/public/car-list')->group(function(){
     Route::get('/', [CarListController::class, 'index'])->name('public.car.index');
     Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
+    
 });
+
+Route::get('/featured', [CarListController::class, 'featuredCars'])->name('featured.cars');
+Route::get('/spotlight', [CarListController::class, 'spotlightCars'])->name('spotlight.cars');
+Route::get('/trending', [CarListController::class, 'mostViewedCars'])->name('trending.cars');
 
 
 // Webhook
@@ -132,6 +142,8 @@ Route::get('/send', [WhatsappBotController::class, 'index'])->name('demo');
 Route::get('/dealer', [CarListAutoController::class, 'get_dealer'])->name('dealer_store');
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 
@@ -141,10 +153,10 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPasswor
 Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']);
 
 // Email Verification Route
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return response()->json(['message' => 'Email successfully verified.']);
-})->name('verification.verify');
+// Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+//     $request->fulfill();
+//     return response()->json(['message' => 'Email successfully verified.']);
+// })->name('verification.verify');
 
 // Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
 //     $request->fulfill();
@@ -157,7 +169,7 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
 Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return response()->json(['message' => 'Verification email resent.']);
-})->middleware('auth:sanctum');
+})->middleware('api');
 
 
 // Route::prefix('/car-list')->group(function(){
@@ -279,7 +291,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Body Sub Type Model Routes
-        Route::prefix('/admin/body-sub-type')->group(function(){
+        Route::prefix('/admin/body-subtype')->group(function(){
             Route::post('/', [BodySubTypeController::class, 'store'])->name('store');
             Route::get('/', [BodySubTypeController::class, 'index'])->name('index');
             Route::get('/{id}', [BodySubTypeController::class, 'show'])->name('single_view');
@@ -306,7 +318,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Drive Train Routes
-        Route::prefix('/admin/drive-train')->group(function(){
+        Route::prefix('/admin/drivetrain')->group(function(){
             Route::post('/', [DriveTrainController::class, 'store'])->name('store');
             Route::get('/', [DriveTrainController::class, 'index'])->name('index');
             Route::get('/{id}', [DriveTrainController::class, 'show'])->name('single_view');
@@ -351,7 +363,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Door Routes
-        Route::prefix('/admin/door')->group(function(){
+        Route::prefix('/admin/doors')->group(function(){
             Route::post('/', [DoorController::class, 'store'])->name('store');
             Route::get('/', [DoorController::class, 'index'])->name('index');
             Route::get('/{id}', [DoorController::class, 'show'])->name('single_view');
@@ -360,7 +372,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Cylinder Routes
-        Route::prefix('/admin/cylinder')->group(function(){
+        Route::prefix('/admin/cylinders')->group(function(){
             Route::post('/', [CylinderController::class, 'store'])->name('store');
             Route::get('/', [CylinderController::class, 'index'])->name('index');
             Route::get('/{id}', [CylinderController::class, 'show'])->name('single_view');
@@ -456,7 +468,7 @@ Route::middleware(['api'])->group(function () {
             Route::post('/', [CarListController::class, 'store'])->name('store');
             Route::get('/', [CarListController::class, 'index'])->name('index');
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
-            Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+            Route::post('/{id}', [CarListController::class, 'update'])->name('update');
             Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
         });
 
@@ -503,13 +515,19 @@ Route::middleware(['api'])->group(function () {
         Route::prefix('/admin')->group(function(){
             Route::get('/profile', [SingleUserController::class, 'index'])->name('singleuser');
             Route::put('/profile',[SingleUserController::class, 'update'])->name('updateProfile');
+            Route::get('/verifyUser/{user_id}',[ProfileController::class, 'verifyUser'])->name('verify.user');
+            Route::get('/verifyUserList',[ProfileController::class, 'verifyUserList'])->name('verify.user.list');
+            Route::get('/acceptDoc/{user_id}',[ProfileController::class, 'acceptDoc'])->name('accept.doc');
+            Route::get('/rejectDoc/{user_id}',[ProfileController::class, 'rejectDoc'])->name('reject.doc');
+            Route::get('/dashboard',[ProfileController::class, 'countTotal'])->name('dashboard');
         });
 
 
         // Route::get('/admin', function () {
         Route::prefix('/admin')->group(function(){
             Route::get('/all-drop', [AllDropController::class, 'index'])->name('showAllDrop');
-            Route::get('/all-cars', [CarListAutoController::class, 'index'])->name('showAllCars');
+            Route::get('/marketCheck', [CarListAutoController::class, 'marketCheck'])->name('MarketCheck');
+            Route::get('/autoDev', [CarListAutoController::class, 'autoDev'])->name('AutoDev');
             Route::get('/vin', [CarListAutoController::class, 'get_vin'])->name('vin_store');
             
             // return response()->json(['message' => 'Welcome, Admin']);
@@ -580,7 +598,7 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Body Sub Type Model Routes
-        Route::prefix('/body-sub-type')->group(function(){
+        Route::prefix('/body-subtype')->group(function(){
             Route::post('/', [BodySubTypeController::class, 'store'])->name('store');
             Route::get('/', [BodySubTypeController::class, 'index'])->name('index');
         });
@@ -622,19 +640,19 @@ Route::middleware(['api'])->group(function () {
         });
 
         //Engine Block Routes
-        Route::prefix('/engine-bock')->group(function(){
+        Route::prefix('/engine-block')->group(function(){
             Route::post('/', [EngineBlockController::class, 'store'])->name('store');
             Route::get('/', [EngineBlockController::class, 'index'])->name('index');
         });
 
         //Door Routes
-        Route::prefix('/door')->group(function(){
+        Route::prefix('/doors')->group(function(){
             Route::post('/', [DoorController::class, 'store'])->name('store');
             Route::get('/', [DoorController::class, 'index'])->name('index');
         });
 
         //Cylinder Routes
-        Route::prefix('/cylinder')->group(function(){
+        Route::prefix('/cylinders')->group(function(){
             Route::post('/', [CylinderController::class, 'store'])->name('store');
             Route::get('/', [CylinderController::class, 'index'])->name('index');
         });
@@ -667,6 +685,11 @@ Route::middleware(['api'])->group(function () {
         Route::prefix('/std-seating')->group(function(){
             Route::post('/', [StdSeatingController::class, 'store'])->name('store');
             Route::get('/', [StdSeatingController::class, 'index'])->name('index');
+        });
+
+        Route::prefix('/powertrain-type')->group(function(){
+            Route::post('/', [PowertrainTypeController::class, 'store'])->name('store');
+            Route::get('/', [PowertrainTypeController::class, 'index'])->name('index');
         });
 
         //Highway Mileage Model Routes
@@ -706,7 +729,8 @@ Route::middleware(['api'])->group(function () {
             Route::post('/', [CarListController::class, 'store'])->name('store');
             Route::get('/', [CarListController::class, 'index'])->name('index');
             Route::get('/{id}', [CarListController::class, 'show'])->name('single_view');
-            Route::put('/{id}', [CarListController::class, 'update'])->name('update');
+            Route::post('/{id}', [CarListController::class, 'update'])->name('update');
+            Route::delete('/{id}', [CarListController::class, 'destroy'])->name('delete');
         });
 
 
@@ -736,6 +760,9 @@ Route::middleware(['api'])->group(function () {
             Route::get('/profile/order-list',[ProfileController::class, 'orderList'])->name('orderList');
             Route::get('/profile/order-item/{order_id}',[ProfileController::class, 'orderItem'])->name('orderItem');
             Route::get('/carlist', [UserCarListContrioller::class, 'index'])->name('user.carlist');
+            Route::post('/profile/verify',[ProfileController::class, 'uploadVerificationDocs'])->name('verify.docs');
+            Route::get('/profile/verifyAmount',[SubscriptionController::class, 'showAmount'])->name('shhow.amount');
+            Route::get('/dashboard',[ProfileController::class, 'userDashboard'])->name('dashboard');
         });
 
 
@@ -755,6 +782,7 @@ Route::middleware(['api'])->group(function () {
 // Stripe Spotlight
 Route::get('/create-spotlight-checkout-session/{purchase_id}', [SpotlightStripePaymentController::class, 'createSpotlightCheckoutSession'])->name('spotlight.payment.url');
 Route::get('/create-featured-checkout-session/{purchase_id}', [FeaturedStripePaymentController::class, 'createFeaturedCheckoutSession'])->name('featured.payment.url');
+Route::get('/create-verified-checkout-session/{verification_id}', [VerifiedStripePaymentController::class, 'createVerifiedCheckoutSession'])->name('verified.payment.url');
 // Route::post('/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
 // Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
@@ -765,3 +793,190 @@ Route::get('/ping', function() {
 });
 
 
+
+
+
+
+use Symfony\Component\Finder\Finder;
+
+
+
+Route::get('/list-files/{path?}', function ($path = '') {
+    $basePath = "/var/www/car_scrap/data";
+
+    // Sanitize the path to prevent directory traversal attacks
+    $realBase = realpath($basePath);
+    $realPath = realpath($basePath . '/' . $path);
+
+    if (!$realPath || strpos($realPath, $realBase) !== 0) {
+        return response()->json(['error' => 'Invalid directory path'], 400);
+    }
+
+    // Initialize Finder to get only files in the current directory (no subdirectories)
+    $files = [];
+
+    $finder = new Finder();
+    $finder->in($realPath)
+           ->files() // Only files, no directories
+           ->depth(0); // Don't go into subdirectories
+
+    foreach ($finder as $file) {
+        $files[] = $file->getFilename();
+    }
+
+    // Return files found in the current directory
+    return response()->json([
+        'files' => $files
+    ]);
+})->where('path', '.*');
+
+
+
+
+
+
+
+
+Route::get('/read-json/{any}', function ($path) {
+    $fullPath = "/var/www/car_scrap/data/{$path}"; // Directly using absolute path
+
+    if (!file_exists($fullPath)) {
+        return response()->json([
+            'error' => 'File not found',
+            'path' => $fullPath // Debugging: Show the exact file path
+        ], 404);
+    }
+
+    if (pathinfo($fullPath, PATHINFO_EXTENSION) !== 'json') {
+        return response()->json(['error' => 'Invalid file type'], 400);
+    }
+
+    return response()->json(json_decode(file_get_contents($fullPath)), 200);
+})->where('any', '.*');
+
+
+
+
+Route::get('/list-directory/{path?}', function ($path = '') {
+    $basePath = "/var/www/car_scrap/data";
+
+    // Sanitize the path to prevent directory traversal attacks
+    $realBase = realpath($basePath);
+    $realPath = realpath($basePath . '/' . $path);
+
+    if (!$realPath || strpos($realPath, $realBase) !== 0) {
+        return response()->json(['error' => 'Invalid directory path'], 400);
+    }
+
+    // Get directories only (excluding files)
+    $directories = [];
+    $finder = new Finder();
+    $finder->directories()->in($realPath);  // Only directories
+    
+    foreach ($finder as $directory) {
+        $directories[] = $directory->getFilename();
+    }
+
+    return response()->json(['directories' => $directories]);
+})->where('path', '.*');
+
+
+use Illuminate\Support\Facades\Storage;
+
+// Define the storage path for cron job configurations
+$cronFile = storage_path('cron_jobs.json');
+
+/**
+ * Get list of all cron jobs.
+ */
+Route::get('/cron-jobs', function () use ($cronFile) {
+    if (!file_exists($cronFile)) {
+        return response()->json(['cron_jobs' => []]);
+    }
+
+    return response()->json(['cron_jobs' => json_decode(file_get_contents($cronFile), true)]);
+});
+
+/**
+ * Add a new cron job.
+ */
+Route::post('/cron-jobs', function (Request $request) use ($cronFile) {
+    $request->validate([
+        'name' => 'required|string',
+        'command' => 'required|string',
+        'schedule' => 'required|string',
+    ]);
+
+    $cronJobs = file_exists($cronFile) ? json_decode(file_get_contents($cronFile), true) : [];
+
+    $newJob = [
+        'id' => uniqid(),
+        'name' => $request->input('name'),
+        'command' => $request->input('command'),
+        'schedule' => $request->input('schedule'),
+        'created_at' => now(),
+    ];
+
+    $cronJobs[] = $newJob;
+    file_put_contents($cronFile, json_encode($cronJobs, JSON_PRETTY_PRINT));
+
+    return response()->json(['message' => 'Cron job added', 'job' => $newJob]);
+});
+
+/**
+ * Update a cron job.
+ */
+Route::put('/cron-jobs/{id}', function ($id, Request $request) use ($cronFile) {
+    $request->validate([
+        'name' => 'sometimes|string',
+        'command' => 'sometimes|string',
+        'schedule' => 'sometimes|string',
+    ]);
+
+    if (!file_exists($cronFile)) {
+        return response()->json(['error' => 'No cron jobs found'], 404);
+    }
+
+    $cronJobs = json_decode(file_get_contents($cronFile), true);
+    $updated = false;
+
+    foreach ($cronJobs as &$job) {
+        if ($job['id'] === $id) {
+            if ($request->has('name')) $job['name'] = $request->input('name');
+            if ($request->has('command')) $job['command'] = $request->input('command');
+            if ($request->has('schedule')) $job['schedule'] = $request->input('schedule');
+            $updated = true;
+            break;
+        }
+    }
+
+    if (!$updated) {
+        return response()->json(['error' => 'Cron job not found'], 404);
+    }
+
+    file_put_contents($cronFile, json_encode($cronJobs, JSON_PRETTY_PRINT));
+
+    return response()->json(['message' => 'Cron job updated']);
+});
+
+/**
+ * Delete a cron job.
+ */
+Route::delete('/cron-jobs/{id}', function ($id) use ($cronFile) {
+    if (!file_exists($cronFile)) {
+        return response()->json(['error' => 'No cron jobs found'], 404);
+    }
+
+    $cronJobs = json_decode(file_get_contents($cronFile), true);
+    $cronJobs = array_filter($cronJobs, fn ($job) => $job['id'] !== $id);
+
+    file_put_contents($cronFile, json_encode(array_values($cronJobs), JSON_PRETTY_PRINT));
+
+    return response()->json(['message' => 'Cron job deleted']);
+});
+
+
+
+Route::options('{any}', function () {
+    return response()->json(['status' => 'CORS OK'], 200);
+})->where('any', '.*');

@@ -63,26 +63,19 @@ class WhatsAppMediaController extends Controller
                 return response()->json(['error' => 'Car not found'], 404);
             }
 
-            $file_type = Http::withToken($accessToken)->get("https://graph.facebook.com/v18.0/{$mediaId}");
-            
-            $mimeData = $file_type->json();
 
-            $mimeType = $mimeData['mime_type'];
+            // $imageData = file_get_contents("https://graph.facebook.com/v18.0/{$mediaId}?fields=url&access_token={$accessToken}");
+            // $finfo = new finfo(FILEINFO_MIME_TYPE);
+            // $mimeType = $finfo->buffer($imageData);
 
-            $extensionMap = [
-                'image/jpeg' => 'jpeg',
-                'image/jpg' => 'jpg',
-                'image/png'  => 'png',
-                'image/webp' => 'webp',
-                'image/gif'  => 'gif',
-            ];
-            
-            $extension = isset($extensionMap[$mimeType]) ? $extensionMap[$mimeType] : 'jpg';
 
-            $fileName = $mediaId .'.'. $extension;
+            $fileName = $mediaId . '.jpg';
             $filePath = $saveDir . '/' . $fileName;
-            $fileUrl = asset('storage/WhatsappImages/' . $fileName);
-            $fullFileUrl = env('BASE_URL') . $fileUrl;
+            // $fileUrl = url('storage/WhatsappImages/' . $fileName);
+            // $fullFileUrl = env('BASE_URL') . $fileUrl;
+
+            $image->storeAs('uploads', $imageName, 'public');
+            $imagePaths = asset('storage/uploads/' . $imageName);
 
             // Check if the image is already in storage
             if (Storage::exists($filePath)) {

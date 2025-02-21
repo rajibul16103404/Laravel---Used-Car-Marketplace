@@ -564,7 +564,7 @@ class WhatsappCarListController extends Controller
                 'email_verified_at' => now()
             ]);
 
-            return response(['message'=>'New Car Added Successfully.']);
+            return response(['message'=>'New Car Added Successfully.', 'car_id' => $checkOtp->id]);
         }
         else{
             return response(['message'=>'User not found with this phone number.']);

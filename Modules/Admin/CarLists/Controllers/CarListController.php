@@ -3,9 +3,12 @@
 namespace Modules\Admin\CarLists\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
@@ -82,7 +85,7 @@ class CarListController extends Controller
             'model_code' => 'nullable|string',
             'in_transit' => 'nullable|string',
             'photo_links' => 'required|array',
-            'photo_links.*' =>'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo_links.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'dealer_id' => 'nullable|string',
             'year' => 'nullable|string',
             'make' => 'nullable|string',
@@ -113,6 +116,21 @@ class CarListController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        $imagePaths = [];
+
+        if ($request->hasFile('photo_links')) {
+            foreach ($request->file('photo_links') as $image) {
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->storeAs('uploads', $imageName, 'public');
+                $imagePaths[] = asset('storage/uploads/' . $imageName);
+            }
+        }
+
+
+
+        // dd($request->file('photo_links'));
+
 
         
 
@@ -156,6 +174,7 @@ class CarListController extends Controller
             'source' => $request->source,
             'model_code' => $request->model_code,
             'in_transit' => $request->in_transit,
+            'photo_links'=>json_encode($imagePaths),
             'dealer_id' => $request->dealer_id,
             'year' => $request->year,
             'make' => $request->make,
@@ -183,18 +202,29 @@ class CarListController extends Controller
             'powertrain_type' => $request->powertrain_type,
         ]);
 
-        $imagePaths = [];
-        if ($request->hasFile('photo_links')) {
-            foreach ($request->file('photo_links') as $image) {
-                $path = $image->store('productImages', 'public'); // Store images in storage/app/public/products
-                $imagePaths[] = asset(env('BASE_URL').'storage/' . $path);
-            }
-        }
+        // $imagePaths = [];
+        // if ($request->hasFile('photo_links')) {
+        //     $photos = is_array($request->file('photo_links')) ? $request->file('photo_links') : [$request->file('photo_links')];
+
+        //     foreach ($photos as $image) {
+        //         $path = $image->store('AppUpload', 'app/public'); // Store images in storage/app/public/products
+        //         $imagePaths[] = asset(env('BASE_URL').'storage/' . $path);
+
+
+        //         // Save image URLs to product
+        //         $carlist->update([
+        //             'photo_links' => implode(',', $imagePaths), // Store URLs as comma-separated values
+        //         ]);
+        //     }
+        // }
 
         // Save image URLs to product
-        $carlist->update([
-            'image_urls' => implode(',', $imagePaths), // Store URLs as comma-separated values
-        ]);
+        // $carlist->update([
+        //     'image_urls' => implode(',', $imagePaths), // Store URLs as comma-separated values
+        // ]);
+        // $carlist->update([
+        //     'photo_links' => json_encode($imagePaths),
+        // ]);
 
         return response()->json([
             'message' => 'New List Added Successfully',
@@ -284,7 +314,85 @@ class CarListController extends Controller
     }
 
     
+    public function featuredCars(Request $request)
+    {
+        // dd('executed');
+        if($request->page === '0'){
+            $perPage =  Carlist::where('featured', 1)->count();
+            // dd($perPage);
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
 
+        
+        
+        $data = Carlist::where('featured', 1)->paginate($perPage);
+
+        // Response
+        return response()->json([
+            'pagination' => [
+                'total_count' => $data->total(),
+                'total_page' => $data->lastPage(),
+                'current_page' => $data->currentPage(),
+                'current_page_count' => $data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage() + 1 : null,
+                'previous_page' => $data->onFirstPage() ? null : $data->currentPage(),
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ], 200);
+    }
+
+    public function spotlightCars(Request $request)
+    {
+        if($request->page === '0'){
+            $perPage =  Carlist::where('spotlight', 1)->count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
+
+        $data = Carlist::where('spotlight', 1)->paginate($perPage);
+
+        return response()->json([
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
+
+    public function mostViewedCars(Request $request)
+    {
+        if($request->page === '0'){
+            $perPage =  Carlist::count();
+        }
+        else{
+            $perPage = $request->input('per_page', 10);
+        }
+
+        $data = Carlist::orderBy('view_count', 'desc')->paginate($perPage);
+
+        return response()->json([
+            'pagination' => [
+                'total_count'=>$data->total(),
+                'total_page'=>$data->lastPage(),
+                'current_page'=>$data->currentPage(),
+                'current_page_count'=>$data->count(),
+                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
+                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
+            ],
+            'message' => 'Data Retrieved Successfully',
+            'data' => $data->items(),
+        ],200);
+    }
     
 
     public function show($id)
@@ -304,6 +412,48 @@ class CarListController extends Controller
 
         //Find product by ID
         $car_list = Carlist::find($id);
+
+        $today = Carbon::now();
+        $timestampInSeconds = $today->timestamp;
+        $dayCountFeatured = (int)($car_list->featured_expire) - (int)$timestampInSeconds;
+
+        if($dayCountFeatured>0){
+            $daysLeftFeatured = floor($dayCountFeatured / 86400);
+            $remainingSeconds = $dayCountFeatured % 86400; // Remaining seconds after removing full days
+            $hoursLeft = floor($remainingSeconds / 3600); // 3600 seconds in an hour
+            $remainingSeconds = $remainingSeconds % 3600; // Remaining seconds after removing full hours
+            $minutesLeft = floor($remainingSeconds / 60); // 60 seconds in a minute
+
+            // Concatenate into a single string
+            $timeLeftFormattedFeatured = "{$daysLeftFeatured} days, {$hoursLeft} hours, {$minutesLeft} minutes";
+        }
+        else{
+            $timeLeftFormattedFeatured = "expired";
+            $car_list->update([
+                'featured'=>0,
+                'featured_expire'=>'expired'
+            ]);
+        }
+
+        $dayCountSpotlight = (int)($car_list->spotlight_expire) - (int)$timestampInSeconds;
+        if($dayCountSpotlight>0){
+            $daysLeftSpotlight = floor($dayCountSpotlight / 86400); // Calculate full days
+
+            $remainingSeconds = $dayCountSpotlight % 86400; // Get remaining seconds after full days
+            $hoursLeft = floor($remainingSeconds / 3600); // Convert remaining seconds to hours
+            $remainingSeconds = $remainingSeconds % 3600; // Get remaining seconds after full hours
+            $minutesLeft = floor($remainingSeconds / 60); // Convert remaining seconds to minutes
+
+            // Concatenate into a single string
+            $timeLeftFormattedSpotlight = "{$daysLeftFeatured} days, {$hoursLeft} hours, {$minutesLeft} minutes";
+        }
+        else{
+            $timeLeftFormattedSpotlight = "expired";
+            $car_list->update([
+                'spotlight'=>0,
+                'spotlight_expire'=>'expired'
+            ]);
+        }
 
         if($car_list)
         {
@@ -377,6 +527,10 @@ class CarListController extends Controller
                 'city_mpg' => $city_mpg,
                 'powertrain_type' => $powertrain_type,  
             ],
+            'expireIn'=>[
+                'featured'=>$timeLeftFormattedFeatured,
+                'spotlight'=>$timeLeftFormattedSpotlight,
+            ]
         ], 200);
     }
 
@@ -388,72 +542,76 @@ class CarListController extends Controller
 
         // Validate request data
         $validator = Validator::make($request->all(), [
-            'car_id' => 'required|string',
-            'vin' => 'required|string',
-            'heading' => 'required|string',
-            'price' => 'required|string',
-            'miles' => 'nullable|string',
-            'msrp' => 'nullable|string',
-            'data_source' => 'nullable|string',
-            'vdp_url' => 'nullable|string',
-            'carfax_1_owner' => 'nullable|string',
-            'carfax_clean_title' => 'nullable|string',
-            'exterior_color' => 'nullable|string',
-            'interior_color' => 'nullable|string',
-            'base_int_color' => 'nullable|string',
-            'base_ext_color' => 'nullable|string',
-            'dom' => 'nullable|string',
-            'dom_180' => 'nullable|string',
-            'dom_active' => 'nullable|string',
-            'dos_active' => 'nullable|string',
-            'seller_type' => 'nullable|string',
-            'inventory_type' => 'nullable|string',
-            'stock_no' => 'nullable|string',
-            'last_seen_at' => 'nullable|string',
-            'last_seen_at_date' => 'nullable|string',
-            'scraped_at' => 'nullable|string',
-            'scraped_at_date' => 'nullable|string',
-            'first_seen_at' => 'nullable|string',
-            'first_seen_at_date' => 'nullable|string',
-            'first_seen_at_source' => 'nullable|string',
-            'first_seen_at_source_date' => 'nullable|string',
-            'first_seen_at_mc' => 'nullable|string',
-            'first_seen_at_mc_date' => 'nullable|string',
-            'ref_price' => 'nullable|string',
-            'price_change_percent' => 'nullable|string',
-            'ref_price_dt' => 'nullable|string',
-            'ref_miles' => 'nullable|string',
-            'ref_miles_dt' => 'nullable|string',
-            'source' => 'nullable|string',
-            'model_code' => 'nullable|string',
-            'in_transit' => 'nullable|string',
-            'photo_links' => 'nullable|string',
-            'dealer_id' => 'nullable|string',
-            'year' => 'nullable|string',
-            'make' => 'nullable|string',
-            'model' => 'nullable|string',
-            'trim' => 'nullable|string',
-            'version' => 'nullable|string',
-            'body_type' => 'nullable|string',
-            'body_subtype' => 'nullable|string',
-            'vehicle_type' => 'nullable|string',
-            'transmission' => 'nullable|string',
-            'drivetrain' => 'nullable|string',
-            'fuel_type' => 'nullable|string',
-            'engine' => 'nullable|string',
-            'engine_size' => 'nullable|string',
-            'engine_block' => 'nullable|string',
-            'doors' => 'nullable|string',
-            'cylinders' => 'nullable|string',
-            'made_in' => 'nullable|string',
-            'overall_height' => 'nullable|string',
-            'overall_length' => 'nullable|string',
-            'overall_width' => 'nullable|string',
-            'std_seating' => 'nullable|string',
-            'highway_mpg' => 'nullable|string',
-            'city_mpg' => 'nullable|string',
-            'powertrain_type' => 'nullable|string',
+            'car_id' => 'sometimes|required|string',
+            'vin' => 'sometimes|required|string',
+            'heading' => 'sometimes|required|string',
+            'price' => 'sometimes|required|string',
+            'miles' => 'sometimes|nullable|string',
+            'msrp' => 'sometimes|nullable|string',
+            'data_source' => 'sometimes|nullable|string',
+            'vdp_url' => 'sometimes|nullable|string',
+            'carfax_1_owner' => 'sometimes|nullable|string',
+            'carfax_clean_title' => 'sometimes|nullable|string',
+            'exterior_color' => 'sometimes|nullable|string',
+            'interior_color' => 'sometimes|nullable|string',
+            'base_int_color' => 'sometimes|nullable|string',
+            'base_ext_color' => 'sometimes|nullable|string',
+            'dom' => 'sometimes|nullable|string',
+            'dom_180' => 'sometimes|nullable|string',
+            'dom_active' => 'sometimes|nullable|string',
+            'dos_active' => 'sometimes|nullable|string',
+            'seller_type' => 'sometimes|nullable|string',
+            'inventory_type' => 'sometimes|nullable|string',
+            'stock_no' => 'sometimes|nullable|string',
+            'last_seen_at' => 'sometimes|nullable|string',
+            'last_seen_at_date' => 'sometimes|nullable|string',
+            'scraped_at' => 'sometimes|nullable|string',
+            'scraped_at_date' => 'sometimes|nullable|string',
+            'first_seen_at' => 'sometimes|nullable|string',
+            'first_seen_at_date' => 'sometimes|nullable|string',
+            'first_seen_at_source' => 'sometimes|nullable|string',
+            'first_seen_at_source_date' => 'sometimes|nullable|string',
+            'first_seen_at_mc' => 'sometimes|nullable|string',
+            'first_seen_at_mc_date' => 'sometimes|nullable|string',
+            'ref_price' => 'sometimes|nullable|string',
+            'price_change_percent' => 'sometimes|nullable|string',
+            'ref_price_dt' => 'sometimes|nullable|string',
+            'ref_miles' => 'sometimes|nullable|string',
+            'ref_miles_dt' => 'sometimes|nullable|string',
+            'source' => 'sometimes|nullable|string',
+            'model_code' => 'sometimes|nullable|string',
+            'in_transit' => 'sometimes|nullable|string',
+            'photo_links' => 'sometimes|required|array',
+            'photo_links.*' => 'sometimes|required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'dealer_id' => 'sometimes|nullable|string',
+            'year' => 'sometimes|nullable|string',
+            'make' => 'sometimes|nullable|string',
+            'model' => 'sometimes|nullable|string',
+            'trim' => 'sometimes|nullable|string',
+            'version' => 'sometimes|nullable|string',
+            'body_type' => 'sometimes|nullable|string',
+            'body_subtype' => 'sometimes|nullable|string',
+            'vehicle_type' => 'sometimes|nullable|string',
+            'transmission' => 'sometimes|nullable|string',
+            'drivetrain' => 'sometimes|nullable|string',
+            'fuel_type' => 'sometimes|nullable|string',
+            'engine' => 'sometimes|nullable|string',
+            'engine_size' => 'sometimes|nullable|string',
+            'engine_block' => 'sometimes|nullable|string',
+            'doors' => 'sometimes|nullable|string',
+            'cylinders' => 'sometimes|nullable|string',
+            'made_in' => 'sometimes|nullable|string',
+            'overall_height' => 'sometimes|nullable|string',
+            'overall_length' => 'sometimes|nullable|string',
+            'overall_width' => 'sometimes|nullable|string',
+            'std_seating' => 'sometimes|nullable|string',
+            'highway_mpg' => 'sometimes|nullable|string',
+            'city_mpg' => 'sometimes|nullable|string',
+            'powertrain_type' => 'sometimes|nullable|string',
         ]);
+
+        Log::info('Request Data: ', $request->all());
+
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -465,6 +623,19 @@ class CarListController extends Controller
         if (!$carlist) {
             return response()->json(['message' => 'Car List Not Found'], 404);
         }
+
+
+        $existingImages = $carlist->photo_links ? json_decode($carlist->photo_links, true) : [];
+
+        if ($request->hasFile('photo_links')) {
+            foreach ($request->file('photo_links') as $image) {
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->storeAs('uploads', $imageName, 'public');
+                $existingImages[] = asset('storage/uploads/' . $imageName);
+            }
+        }
+
+        // dd($existingImages);
 
         // Update the record
         $carlist->update([
@@ -507,7 +678,7 @@ class CarListController extends Controller
             'source' => $request->source,
             'model_code' => $request->model_code,
             'in_transit' => $request->in_transit,
-            'photo_links' => $request->photo_links,
+            'photo_links' => json_encode($existingImages),
             'dealer_id' => $request->dealer_id,
             'year' => $request->year,
             'make' => $request->make,
