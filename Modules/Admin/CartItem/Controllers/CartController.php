@@ -15,70 +15,114 @@ use Modules\Admin\Subscriptions\Models\Subscription;
 class CartController extends Controller
 {
 
-    public function PlatformFee($car_id){
+    public function PlatformFee($car_id)
+    {
+        try {
+            $subtotal = 0;
 
-        $subtotal=0;
+            // Check if the car exists
+            $availableCar = Carlist::find($car_id);
+            if (!$availableCar) {
+                return response()->json([
+                    'status' => 'Error',
+                    'message' => 'Car not found',
+                ], 404);
+            }
 
-        $availableCar = Carlist::find($car_id);
+            $subtotal += $availableCar->price;
 
-        $subtotal = $subtotal + $availableCar->price;
+            // Check if the platform fee record exists
+            $platform = Subscription::where('name', 'Platform Fee')->first();
+            if (!$platform || !isset($platform->amount) || !is_numeric($platform->amount)) {
+                return response()->json([
+                    'status' => 'Error',
+                    'message' => 'Platform fee configuration not found or invalid',
+                ], 500);
+            }
 
-        $platform = Subscription::where('name', 'Platform Fee')->first();
+            // Calculate platform fee
+            $platformFee = ($subtotal / 100) * floatval($platform->amount);
 
-        $platformFee = ($subtotal/100)*floatval($platform->amount);
-
-        return response([
-            'status'=>'Success',
-            'platform'=>$platformFee,
-        ]);
+            return response()->json([
+                'status' => 'Success',
+                'platform' => round($platformFee, 2),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
+
     
     public function index(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'country' => 'nullable|string',
             'port' => 'nullable|string',
         ]);
 
-        $country = $request->country;
-        $port = $request->port;
+        try {
+            $country = $request->country;
+            $port = $request->port;
+            $amount = 0;
 
-        // Attempt to find the shipping rate
-        $rate = shipping::where('country_code', $country)->where('port_code', $port)->first();
+            if ($country && $port) {
+                $rate = Shipping::where('country_code', $country)
+                    ->where('port_code', $port)
+                    ->first();
 
-        // if (!$rate) {
-        //     // Return 404 response if no rate is found
-        //     return response()->json([
-        //         'error' => 'Shipping rate not found for the specified country and port.',
-        //     ], 404);
-        // }
+                if ($rate) {
+                    $amount = $rate->amount;
+                } else {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Shipping rate not found for the given country and port.',
+                    ], 404);
+                }
+            }
 
-        // Return the found shipping rate
-        if($country!=null && $port!=null){
-            $amount = $rate->amount;
+            return response()->json([
+                'status' => 'success',
+                'data' => $amount,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while retrieving shipping rates. Please try again.',
+            ], 500);
         }
-        else{
-            $amount=0;
-        }
-
-
-        
-
-        return response()->json([
-            'status' => 'success',
-            'data'=>$amount,
-        ]);
     }
 
 
 
-    public function showAllShippingRates(){
-        $rates = shipping::all();
-        return response([
-            'status'=>'success',
-            'data'=>$rates
-        ]);
+
+    public function showAllShippingRates()
+    {
+        try {
+            $rates = Shipping::all();
+
+            if ($rates->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No shipping rates found',
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $rates,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve shipping rates. Please try again.',
+                'error' => $e->getMessage(), // Optional: remove in production for security
+            ], 500);
+        }
     }
+
 
 
 

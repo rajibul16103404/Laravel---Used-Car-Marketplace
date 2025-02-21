@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Modules\Admin\Profile\Models\UserVerified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
 use Modules\Admin\CarLists\Models\Carlist;
@@ -313,5 +314,34 @@ class ProfileController extends Controller
                 'latestCar'=>$latestCar
             ]
         ]);
+    }
+
+    public function changePF(Request $request){
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('uploads', $imageName, 'public');
+
+            $imageUrl = Storage::url($imagePath);
+
+            $fullUrl = env('APP_URL').$imageUrl;
+
+            $userID = Auth::id();
+
+            $image = ModelsAuth::find($userID);
+
+            $image->update([
+                'imageURL'=>$fullUrl
+            ]);
+
+            return response()->json(['message' => 'Image uploaded successfully', 'image_url' => $fullUrl]);
+        }
+
+        return response()->json(['message' => 'Image upload failed'], 400);
+
     }
 }

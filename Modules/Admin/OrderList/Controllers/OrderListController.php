@@ -27,7 +27,31 @@ class OrderListController extends Controller
             $perPage = $request->input('per_page', 10);
         }
 
-        $data = Checkout::paginate($perPage);
+        $qry = Checkout::query();
+        if ($request->filled('order_id')) {
+            $qry->where('order_id', $request->order_id);
+        }
+        if ($request->filled('order_from')) {
+            $qry->where('order_from', $request->order_from);
+        }
+        if ($request->filled('phone')) {
+            $qry->where('phone', $request->phone);
+        }
+        if ($request->filled('email')) {
+            $qry->where('email', $request->email);
+        }
+        if ($request->filled('order_status')) {
+            $qry->where('order_status', $request->order_status);
+        }
+        if ($request->filled('payment_status')) {
+            $qry->where('payment_status', $request->payment_status);
+        }
+        if ($request->filled('created_at')) {
+            $qry->whereDate('created_at', $request->created_at);
+        }
+        
+
+        $data = $qry->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json([
             'pagination' => [

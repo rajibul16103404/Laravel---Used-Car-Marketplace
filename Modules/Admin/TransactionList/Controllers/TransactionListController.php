@@ -27,7 +27,24 @@ class TransactionListController extends Controller
             $perPage = $request->input('per_page', 10);
         }
 
-        $data = Transaction::paginate($perPage);
+        $qry = Transaction::query();
+        if ($request->filled('order_id')) {
+            $qry->where('order_id', $request->order_id);
+        }
+        if ($request->filled('order_from')) {
+            $qry->where('order_from', $request->order_from);
+        }
+        if ($request->filled('status')) {
+            $qry->where('status', $request->status);
+        }
+        if ($request->filled('transaction_id')) {
+            $qry->where('transaction_id', $request->transaction_id);
+        }
+        if ($request->filled('created_at')) {
+            $qry->whereDate('created_at', $request->created_at);
+        }
+
+        $data = $qry->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json([
             'pagination' => [

@@ -237,6 +237,7 @@ return [
         Modules\Admin\SpotlightPackage\SpotlightPackageServiceProvider::class,
         Modules\Admin\OrderList\OrderListServiceProvider::class,
         Modules\Admin\TransactionList\TransactionListServiceProvider::class,
+        Modules\Admin\ScrapData\ScrapDataServiceProvider::class,
 
 
 

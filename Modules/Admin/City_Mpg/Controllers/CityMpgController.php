@@ -11,83 +11,6 @@ class CityMpgController extends Controller
 {
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
-            'name' => 'required|string|max:255',
-            'status' => 'required|integer|in:0,1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $citympg = CityMpg::create([
-            'name' => $request->name,
-            'status' => $request->status,
-        ]);
-
-        return response()->json([
-            'message' => 'New City Mileage Added Successfully',
-            'data' => $citympg,
-        ], status: 201);
-    }
-
-    public function index(Request $request)
-    {
-        // $citympg = citympg::all();
-
-        // return response()->json([
-        //     'message' => 'City Mileage data retrieved',
-        //     'data' => $citympg,
-        // ], 200);
-
-        if($request->page === '0'){
-            $perPage =  CityMpg::count();
-        }
-        else{
-            $perPage = $request->input('per_page', 10);
-        }
-
-        $data = CityMpg::paginate($perPage);
-
-        return response()->json([
-            'pagination' => [
-                'total_count'=>$data->total(),
-                'total_page'=>$data->lastPage(),
-                'current_page'=>$data->currentPage(),
-                'current_page_count'=>$data->count(),
-                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
-                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
-            ],
-            'message' => 'Data Retrieved Successfully',
-            'data' => $data->items(),
-        ],200);
-    }
-
-    public function show($id)
-    {
-        // Find product by ID
-        $citympg = CityMpg::find($id);
-
-        // Check if product exists
-        if (!$citympg) {
-            return response()->json([
-                'message' => 'City Mileage not found',
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'City Mileage data retrieved successfully',
-            'data' => $citympg,
-        ], 200);
-    }
-
-
-    public function update(Request $request, $id)
-    {
-        // Debug the request to see what data is coming
-        // dd($request->all());
-
-        // Validate request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'status' => 'required|integer|in:0,1',
@@ -97,44 +20,156 @@ class CityMpgController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Find the City Mileage record
-        $citympg = CityMpg::find($id);
+        try {
+            $citympg = CityMpg::create([
+                'name' => $request->name,
+                'status' => $request->status,
+            ]);
 
-        if (!$citympg) {
-            return response()->json(['message' => 'City Mileage Not Found'], 404);
+            return response()->json([
+                'message' => 'New City Mileage Added Successfully',
+                'data' => $citympg,
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to add City Mileage. Please try again.', 'details' => $e->getMessage()], 500);
         }
-
-        // Update the record
-        $citympg->update([
-            'name' => $request->name,
-            'status' => $request->status,
-        ]);
-
-        // Return success response
-        return response()->json([
-            'message' => 'City Mileage Updated Successfully',
-            'data' => $citympg,
-        ], 200);
     }
+
+
+    public function index(Request $request)
+    {
+        try {
+            // Determine the number of items per page
+            if ($request->page === '0') {
+                $perPage = CityMpg::count();
+            } else {
+                $perPage = $request->input('per_page', 10);
+            }
+
+            // Fetch paginated data
+            $data = CityMpg::orderBy('created_at', 'desc')->paginate($perPage);
+
+            return response()->json([
+                'pagination' => [
+                    'total_count' => $data->total(),
+                    'total_page' => $data->lastPage(),
+                    'current_page' => $data->currentPage(),
+                    'current_page_count' => $data->count(),
+                    'next_page' => $data->hasMorePages() ? $data->currentPage() + 1 : null,
+                    'previous_page' => $data->onFirstPage() ? null : $data->currentPage(),
+                ],
+                'message' => 'Data Retrieved Successfully',
+                'data' => $data->items(),
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve data. Please try again.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function show($id)
+    {
+        try {
+            // Find CityMpg by ID
+            $citympg = CityMpg::find($id);
+    
+            // Check if the record exists
+            if (!$citympg) {
+                return response()->json([
+                    'message' => 'City Mileage not found',
+                ], 404);
+            }
+    
+            // Return success response if found
+            return response()->json([
+                'message' => 'City Mileage data retrieved successfully',
+                'data' => $citympg,
+            ], 200);
+        } catch (Exception $e) {
+            // Handle unexpected errors
+            return response()->json([
+                'error' => 'An error occurred while retrieving data. Please try again.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+
+
+    public function update(Request $request, $id)
+    {
+        // Validate request data
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'status' => 'required|integer|in:0,1',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
+        try {
+            // Find the City Mileage record
+            $citympg = CityMpg::find($id);
+    
+            if (!$citympg) {
+                return response()->json(['message' => 'City Mileage Not Found'], 404);
+            }
+    
+            // Update the record
+            $citympg->update([
+                'name' => $request->name,
+                'status' => $request->status,
+            ]);
+    
+            // Return success response
+            return response()->json([
+                'message' => 'City Mileage Updated Successfully',
+                'data' => $citympg,
+            ], 200);
+    
+        } catch (Exception $e) {
+            // Log the exception (optional, depending on your logging configuration)
+            // Log::error($e->getMessage());
+    
+            return response()->json([
+                'error' => 'An error occurred while updating the City Mileage. Please try again later.',
+                'details' => $e->getMessage(), // Optionally include the error details for debugging purposes
+            ], 500);
+        }
+    }
+    
 
 
     public function destroy($id)
     {
-        // Find the City Mileage record
-        $citympg = CityMpg::find($id);
-
-        if (!$citympg) {
-            return response()->json(['message' => 'City Mileage Not Found'], 404);
+        try {
+            // Find the City Mileage record
+            $citympg = CityMpg::find($id);
+    
+            if (!$citympg) {
+                return response()->json(['message' => 'City Mileage Not Found'], 404);
+            }
+    
+            // Delete the record
+            $citympg->delete();
+    
+            // Return success response
+            return response()->json([
+                'message' => 'City Mileage Deleted Successfully',
+            ], 200);
+        } catch (Exception $e) {
+            // Catch any exceptions and return a generic error message
+            return response()->json([
+                'error' => 'Failed to delete City Mileage. Please try again later.',
+                'details' => $e->getMessage()  // Optionally, add exception details for debugging
+            ], 500);
         }
-
-        // Delete the record
-        $citympg->delete();
-
-        // Return success response
-        return response()->json([
-            'message' => 'City Mileage Deleted Successfully',
-        ], 200);
     }
+    
 
 
 }
