@@ -72,7 +72,7 @@ class CarListScrappedDataQatarSaleController extends Controller
                 $photo_links = json_encode($car['images'] ?? []);
                 
                 $user_id = null;
-                $user = Auth::select('id')->where('email', 'qal@demo.com')->first();
+                $user = Auth::select('id')->where('email', 'qas@demo.com')->first();
                 $user_id = $user->id ?? null;
                 
                 $carlist = Carlist::create([
@@ -145,7 +145,14 @@ class CarListScrappedDataQatarSaleController extends Controller
     private function extractHeadingFromUrl($url) {
         $parts = explode('/', $url);
         $lastPart = end($parts);
-        $heading = $lastPart;
-        return ucwords( $heading);
+    
+        // Remove everything after the last hyphen (-)
+        $heading = explode('-', $lastPart)[0];
+    
+        // Replace underscores with spaces
+        $heading = str_replace('_', ' ', $heading);
+    
+        return ucwords($heading);
     }
+    
 }
