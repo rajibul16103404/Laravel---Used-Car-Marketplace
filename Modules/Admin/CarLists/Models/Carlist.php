@@ -89,6 +89,7 @@ class Carlist extends Model
         'email',
         'fullName',
         'phone',
+        'location'
     ];
 
     // protected $fillable = [

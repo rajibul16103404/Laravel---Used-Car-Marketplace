@@ -91,7 +91,8 @@ class CarListScrappedDataController extends Controller
                     'engine_size' => $engine_size,
                     'doors' => $doors,
                     'cylinders' => $cylinders,
-                    'car_location' => $car_location,
+                    'location' => $car_location,
+                    'phone' => $car['phone'] ?? null,
                     'created_at' => $car['created_at'] ?? null,
                     'updated_at' => $car['updated_at'] ?? null
                 ]);
@@ -141,8 +142,8 @@ class CarListScrappedDataController extends Controller
     private function getOrCreateCylinders($cylinderCount) {
         return $cylinderCount ? Cylinder::firstOrCreate(['name' => $cylinderCount])->id : null;
     }
-    private function getOrCreateCarLocation($cylinderCount) {
-        return $cylinderCount ? CarLocation::firstOrCreate(['name' => $cylinderCount])->id : null;
+    private function getOrCreateCarLocation($locationCount) {
+        return $locationCount ? CarLocation::firstOrCreate(['name' => $locationCount])->id : null;
     }
 
     private function extractHeadingFromUrl($url) {
