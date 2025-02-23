@@ -544,11 +544,6 @@ Route::middleware(['api'])->group(function () {
         });
 
 
-        Route::prefix('/admin')->group(function(){
-            Route::get('/scrap', [ScrapDataController::class, 'index'])->name('showScrappedDataLog');
-            Route::get('/import-scrap-data', [CarListScrappedDataController::class, 'index'])->name('importScrappedData');
-            Route::get('/import-scrap-data-qas', [CarListScrappedDataQatarSaleController::class, 'index'])->name('importScrappedDataQatarSale');
-        });
     });
 
     Route::middleware(['role:user'])->group(function () {
@@ -847,6 +842,11 @@ Route::get('/list-files/{path?}', function ($path = '') {
 
 
 
+Route::prefix('/scrap')->group(function(){
+    Route::get('/logs', [ScrapDataController::class, 'index'])->name('showScrappedDataLog');
+    Route::get('/import-scrap-data', [CarListScrappedDataController::class, 'index'])->name('importScrappedData');
+    Route::get('/import-scrap-data-qas', [CarListScrappedDataQatarSaleController::class, 'index'])->name('importScrappedDataQatarSale');
+});
 
 
 
