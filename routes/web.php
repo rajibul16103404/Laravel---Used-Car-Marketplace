@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AutoScrapQuatarSales;
 use App\Http\Controllers\ComposerController;
 use App\Http\Controllers\PrivatCarController;
 use Illuminate\Support\Facades\Artisan;
@@ -52,6 +53,12 @@ Route::get('/db_seed', function() {
 Route::get('/clear_config', function() {
     Artisan::call('config:clear');
     return 'Config Cleared successfully!';
+});
+
+// Cache Config
+Route::get('/cache_config', function() {
+    Artisan::call('config:cache');
+    return 'Config Cached successfully!';
 });
 
 // Clear Cache
@@ -137,4 +144,18 @@ Route::get('/composer-require-whatsapp', [ComposerController::class, 'composerRe
 
 
 
-// webhook
+// Scrap Car Data
+
+Route::get('/scrape', function() {
+    return view('scrap_form');
+});
+
+// Change from POST to GET for SSE support
+Route::post('/scrape', [autoScrapQuatarSales::class, 'scrape_qatarsale_data_web'])->name('scrape_qatarsale_data_web');
+
+
+Route::get('/scrape-progress', function() {
+    return response()->json(['progress' => session('progress', 0)]);
+});
+
+

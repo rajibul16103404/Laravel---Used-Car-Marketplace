@@ -30,12 +30,31 @@ class PurchaseController extends Controller
         $perPage = $request->input('per_page', 10);
     }
 
-    // Get purchase data based on role
-    $query = Purchase::query();
-    if ($userDetail->role === 0) {
-        $query->where('user_id', $userID);
+    $qry = Purchase::query();
+    if ($request->filled('purchase_id')) {
+        $qry->where('purchase_id', $request->purchase_id);
     }
-    $data = $query->paginate($perPage);
+    if ($request->filled('promotion_name')) {
+        $qry->where('promotion_name', $request->promotion_name);
+    }
+    if ($request->filled('promotion_name')) {
+        $qry->where('promotion_name', $request->promotion_name);
+    }
+    if ($request->filled('purchase_status')) {
+        $qry->where('purchase_status', $request->purchase_status);
+    }
+    if ($request->filled('payment_status')) {
+        $qry->where('payment_status', $request->payment_status);
+    }
+    if ($request->filled('created_at')) {
+        $qry->whereDate('created_at', $request->created_at);
+    }
+
+    // Get purchase data based on role
+    if ($userDetail->role === 0) {
+        $qry->where('user_id', $userID);
+    }
+    $data = $qry->paginate($perPage);
 
     // Extract unique car_ids and package_ids
     $carIds = $data->pluck('car_id')->unique()->toArray();

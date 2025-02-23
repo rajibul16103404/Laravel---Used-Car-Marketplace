@@ -11,75 +11,101 @@ class CylinderController extends Controller
 {
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'status' => 'required|integer|in:0,1',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
-        $cylinder = Cylinder::create([
-            'name' => $request->name,
-            'status' => $request->status,
-        ]);
-
-        return response()->json([
-            'message' => 'New Cylinder Added Successfully',
-            'data' => $cylinder,
-        ], status: 201);
+    
+        try {
+            $cylinder = Cylinder::create([
+                'name' => $request->name,
+                'status' => $request->status,
+            ]);
+    
+            return response()->json([
+                'message' => 'New Cylinder Added Successfully',
+                'data' => $cylinder,
+            ], 201);
+        } catch (\Exception $e) {
+            // Log the error for debugging purposes (optional)
+            \Log::error('Error adding cylinder: ' . $e->getMessage());
+    
+            // Return a generic error message to the user
+            return response()->json([
+                'message' => 'An error occurred while adding the cylinder.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+    
 
     public function index(Request $request)
     {
-        // $cylinder = Cylinder::all();
-
-        // return response()->json([
-        //     'message' => 'Cylinders data retrieved',
-        //     'data' => $cylinder,
-        // ], 200);
-
-        if($request->page === '0'){
-            $perPage =  Cylinder::count();
+        try {
+            if($request->page === '0'){
+                $perPage = Cylinder::count();
+            } else {
+                $perPage = $request->input('per_page', 10);
+            }
+    
+            $data = Cylinder::orderBy('created_at', 'desc')->paginate($perPage);
+    
+            return response()->json([
+                'pagination' => [
+                    'total_count' => $data->total(),
+                    'total_page' => $data->lastPage(),
+                    'current_page' => $data->currentPage(),
+                    'current_page_count' => $data->count(),
+                    'next_page' => $data->hasMorePages() ? $data->currentPage() + 1 : null,
+                    'previous_page' => $data->onFirstPage() ? null : $data->currentPage() - 1,
+                ],
+                'message' => 'Data Retrieved Successfully',
+                'data' => $data->items(),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while retrieving data.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        else{
-            $perPage = $request->input('per_page', 10);
-        }
-
-        $data = Cylinder::paginate($perPage);
-
-        return response()->json([
-            'pagination' => [
-                'total_count'=>$data->total(),
-                'total_page'=>$data->lastPage(),
-                'current_page'=>$data->currentPage(),
-                'current_page_count'=>$data->count(),
-                'next_page' => $data->hasMorePages() ? $data->currentPage()+1 : null,
-                'previous_page'=>$data->onFirstPage() ? null : $data->currentPage()
-            ],
-            'message' => 'Data Retrieved Successfully',
-            'data' => $data->items(),
-        ],200);
     }
+    
 
     public function show($id)
     {
-        // Find product by ID
-        $cylinder = Cylinder::find($id);
-
-        // Check if product exists
-        if (!$cylinder) {
+        try {
+            // Find product by ID
+            $cylinder = Cylinder::find($id);
+    
+            // Check if product exists
+            if (!$cylinder) {
+                return response()->json([
+                    'message' => 'Cylinder not found',
+                ], 404);
+            }
+    
             return response()->json([
-                'message' => 'Cylinder not found',
-            ], 404);
+                'message' => 'Cylinder data retrieved successfully',
+                'data' => $cylinder,
+            ], 200);
+    
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database query exception
+            return response()->json([
+                'message' => 'Database error occurred: ' . $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            // Handle any other exceptions
+            return response()->json([
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Cylinder data retrieved successfully',
-            'data' => $cylinder,
-        ], 200);
     }
+    
 
 
     public function update(Request $request, $id)

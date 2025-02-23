@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\autoScrapQuatarSales;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PrivatCarController;
 use App\Http\Controllers\WhatsAppMediaController;
@@ -12,6 +13,8 @@ use Modules\Admin\Body_Type\Controllers\Body_TypeController;
 use Modules\Admin\CartItem\Controllers\CartController;
 use Modules\Admin\CarLists\Controllers\CarListAutoController;
 use Modules\Admin\CarLists\Controllers\CarListController;
+use Modules\Admin\CarLists\Controllers\CarListScrappedDataController;
+use Modules\Admin\CarLists\Controllers\CarListScrappedDataQatarSaleController;
 use Modules\Admin\CarLists\Controllers\WhatsappCarListController;
 use Modules\Admin\CarModel\Controllers\CarModelController;
 use Modules\Admin\Checkout\Controllers\CheckoutController;
@@ -59,6 +62,7 @@ use Modules\Admin\Profile\Controllers\UserCarListContrioller;
 use Modules\Admin\SpotlightPackage\Controllers\PurchaseController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightPackageController;
 use Modules\Admin\Profile\Controllers\VerifiedStripePaymentController;
+use Modules\Admin\ScrapData\Controllers\ScrapDataController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightStripePaymentController;
 use Modules\Admin\TransactionList\Controllers\TransactionListController;
 
@@ -72,6 +76,13 @@ use Modules\Admin\TransactionList\Controllers\TransactionListController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+
+// Scrapping From https://qatarsale.com/en/products/cars_for_sale
+Route::get('/scrap', [autoScrapQuatarSales::class, 'scrape_qatarsale_data'])->name('scrap.quatar');
+
+
+
 
 // Test File Upload
 Route::post('/upload', [ImageUploadController::class, 'uploadImages']);
@@ -531,6 +542,13 @@ Route::middleware(['api'])->group(function () {
             
             // return response()->json(['message' => 'Welcome, Admin']);
         });
+
+
+        Route::prefix('/admin')->group(function(){
+            Route::get('/scrap', [ScrapDataController::class, 'index'])->name('showScrappedDataLog');
+            Route::get('/import-scrap-data', [CarListScrappedDataController::class, 'index'])->name('importScrappedData');
+            Route::get('/import-scrap-data-qas', [CarListScrappedDataQatarSaleController::class, 'index'])->name('importScrappedDataQatarSale');
+        });
     });
 
     Route::middleware(['role:user'])->group(function () {
@@ -762,6 +780,7 @@ Route::middleware(['api'])->group(function () {
             Route::post('/profile/verify',[ProfileController::class, 'uploadVerificationDocs'])->name('verify.docs');
             Route::get('/profile/verifyAmount',[SubscriptionController::class, 'showAmount'])->name('shhow.amount');
             Route::get('/dashboard',[ProfileController::class, 'userDashboard'])->name('dashboard');
+            Route::post('/change-profile', [ProfileController::class, 'changePF'])->name('change.profile');
         });
 
 

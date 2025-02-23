@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('auths', function (Blueprint $table) {
-            $table->integer('role')->default(0);
-            $table->integer('verified')->default(0);
+            $table->string('role')->default(0);
+            $table->string('verified')->default(0);
         });
     }
 
