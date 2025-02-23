@@ -16,6 +16,7 @@ use Modules\Admin\CarLists\Controllers\CarListController;
 use Modules\Admin\CarLists\Controllers\CarListScrappedDataController;
 use Modules\Admin\CarLists\Controllers\CarListScrappedDataQatarSaleController;
 use Modules\Admin\CarLists\Controllers\WhatsappCarListController;
+use Modules\Admin\CarLocation\Controllers\CarLocationController;
 use Modules\Admin\CarModel\Controllers\CarModelController;
 use Modules\Admin\Checkout\Controllers\CheckoutController;
 use Modules\Admin\City_Mpg\Controllers\CityMpgController;
@@ -459,6 +460,15 @@ Route::middleware(['api'])->group(function () {
             Route::get('/{id}', [CityMpgController::class, 'show'])->name('single_view');
             Route::put('/{id}', [CityMpgController::class, 'update'])->name('update');
             Route::delete('/{id}', [CityMpgController::class, 'destroy'])->name('delete');
+        });
+
+        //Car Locations Model Routes
+        Route::prefix('/admin/car-location')->group(function(){
+            Route::post('/', [CarLocationController::class, 'store'])->name('store');
+            Route::get('/', [CarLocationController::class, 'index'])->name('index');
+            Route::get('/{id}', [CarLocationController::class, 'show'])->name('single_view');
+            Route::put('/{id}', [CarLocationController::class, 'update'])->name('update');
+            Route::delete('/{id}', [CarLocationController::class, 'destroy'])->name('delete');
         });
 
 

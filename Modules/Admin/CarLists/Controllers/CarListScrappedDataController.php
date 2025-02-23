@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Modules\Admin\CarLists\Models\Carlist;
+use Modules\Admin\CarLocation\Models\CarLocation;
 use Modules\Admin\CarModel\Models\Carmodel;
 use Modules\Admin\Color\ExteriorColor\Models\ExteriorColor;
 use Modules\Admin\Cylinders\Models\Cylinder;
@@ -13,10 +14,7 @@ use Modules\Admin\Make\Models\Make;
 use Modules\Auth\Models\Auth;
 use Modules\Admin\Year\Models\Year;
 use Modules\Admin\Transmission\Models\Transmission;
-use Modules\Admin\FuelType\Models\FuelType;
-use Modules\Admin\EngineSize\Models\EngineSize;
-use Modules\Admin\Doors\Models\Doors;
-use Modules\Admin\Cylinders\Models\Cylinders;
+use Modules\Admin\Engine_Size\Models\EngineSize;
 use Modules\Admin\Doors\Models\Door;
 use Modules\Admin\Fuel_Type\Models\Fuel_type;
 
@@ -67,6 +65,7 @@ class CarListScrappedDataController extends Controller
                 $engine_size = $this->getOrCreateEngineSize($car['engine_size_id'] ?? null);
                 $doors = $this->getOrCreateDoors($car['door_id'] ?? null);
                 $cylinders = $this->getOrCreateCylinders($car['cylinder_id'] ?? null);
+                $car_location = $this->getOrCreateCarLocation($car['location_id'] ?? null);
                 $heading = $this->extractHeadingFromUrl($car['url']);
                 $photo_links = json_encode($car['images'] ?? []);
                 
@@ -92,6 +91,7 @@ class CarListScrappedDataController extends Controller
                     'engine_size' => $engine_size,
                     'doors' => $doors,
                     'cylinders' => $cylinders,
+                    'car_location' => $car_location,
                     'created_at' => $car['created_at'] ?? null,
                     'updated_at' => $car['updated_at'] ?? null
                 ]);
@@ -140,6 +140,9 @@ class CarListScrappedDataController extends Controller
 
     private function getOrCreateCylinders($cylinderCount) {
         return $cylinderCount ? Cylinder::firstOrCreate(['name' => $cylinderCount])->id : null;
+    }
+    private function getOrCreateCarLocation($cylinderCount) {
+        return $cylinderCount ? CarLocation::firstOrCreate(['name' => $cylinderCount])->id : null;
     }
 
     private function extractHeadingFromUrl($url) {
