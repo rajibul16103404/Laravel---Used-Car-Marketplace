@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
+use Modules\Admin\CarLocation\Models\CarLocation;
 use Modules\Admin\CarModel\Models\Carmodel;
 use Modules\Admin\Category\Models\Category;
 use Modules\Admin\City_Mpg\Models\CityMpg;
@@ -69,6 +70,7 @@ class AllDropController extends Controller
         $highway_mpg = HighwayMpg::where('status',1)->get();
         $city_mpg = CityMpg::where('status',1)->get();
         $powertraintype = PowertrainType::where('status',1)->get();
+        $car_location = CarLocation::where('status',1)->get();
 
         
         return response([
@@ -99,7 +101,7 @@ class AllDropController extends Controller
             'std_seating'=>$stdseating,
             'highway_mpg'=>$highway_mpg,
             'city_mpg'=>$city_mpg,
-            'powertrain_type'=>$powertraintype,
+            'powertrain_type'=>$powertraintype
         ],200);
     }
 }

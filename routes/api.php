@@ -462,6 +462,18 @@ Route::middleware(['api'])->group(function () {
             Route::delete('/{id}', [CityMpgController::class, 'destroy'])->name('delete');
         });
 
+<<<<<<< Updated upstream
+=======
+        //Car Locations Model Routes
+        // Route::prefix('/admin/car-location')->group(function(){
+        //     Route::post('/', [CarLocationController::class, 'store'])->name('store');
+        //     Route::get('/', [CarLocationController::class, 'index'])->name('index');
+        //     Route::get('/{id}', [CarLocationController::class, 'show'])->name('single_view');
+        //     Route::put('/{id}', [CarLocationController::class, 'update'])->name('update');
+        //     Route::delete('/{id}', [CarLocationController::class, 'destroy'])->name('delete');
+        // });
+
+>>>>>>> Stashed changes
 
         //Subscription Model Routes
         Route::prefix('/admin/subscription')->group(function(){
