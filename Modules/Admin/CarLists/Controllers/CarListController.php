@@ -49,6 +49,8 @@ class CarListController extends Controller
                 'car_id' => 'required|string',
                 'vin' => 'required|string',
                 'heading' => 'required|string',
+                'country' => 'string',
+                'city' => 'string',
                 'price' => 'required|string',
                 'miles' => 'nullable|string',
                 'msrp' => 'nullable|string',

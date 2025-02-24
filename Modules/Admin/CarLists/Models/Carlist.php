@@ -16,6 +16,8 @@ class Carlist extends Model
     use HasFactory;
 
     protected $fillable=[
+        'country',
+        'city',
         'car_id',
         'vin',
         'heading',

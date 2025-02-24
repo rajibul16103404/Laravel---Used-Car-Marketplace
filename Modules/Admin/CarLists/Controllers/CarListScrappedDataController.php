@@ -85,7 +85,13 @@ class CarListScrappedDataController extends Controller
                     $user = Auth::select('id')->where('email', 'qal@demo.com')->first();
                     $user_id = $user->id ?? null;
                 }
+                $country = ucfirst(strtolower('Qatar')); // Converts to "Qatar"
+
+                $city = ucfirst(strtolower($car['location_id'] ?? null)); // Converts to "Qatar"
+
                 $carlist = Carlist::create([
+                    'country' => $country,
+                    'city' => $city,
                     'heading' => $heading,
                     'price' => $car['price'] ?? null,
                     'miles' => $car['mileage'] ?? null,
