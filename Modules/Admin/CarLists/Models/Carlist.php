@@ -91,11 +91,8 @@ class Carlist extends Model
         'email',
         'fullName',
         'phone',
-<<<<<<< Updated upstream
-=======
         'country',
         'city'
->>>>>>> Stashed changes
     ];
 
     public function cartItems(){
