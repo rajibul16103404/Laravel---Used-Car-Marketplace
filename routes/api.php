@@ -66,6 +66,12 @@ use Modules\Admin\ScrapData\Controllers\ScrapDataController;
 use Modules\Admin\SpotlightPackage\Controllers\SpotlightStripePaymentController;
 use Modules\Admin\TransactionList\Controllers\TransactionListController;
 
+
+
+
+Route::get('/public_car/{id}', [Modules\Admin\CarLists\Controllers\CarListController::class, 'show'])->name('public_single_view');
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
