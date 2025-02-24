@@ -49,6 +49,8 @@ class CarListController extends Controller
                 'car_id' => 'required|string',
                 'vin' => 'required|string',
                 'heading' => 'required|string',
+                'country' => 'string',
+                'city' => 'string',
                 'price' => 'required|string',
                 'miles' => 'nullable|string',
                 'msrp' => 'nullable|string',
@@ -111,8 +113,7 @@ class CarListController extends Controller
                 'std_seating' => 'nullable|string',
                 'highway_mpg' => 'nullable|string',
                 'city_mpg' => 'nullable|string',
-                'powertrain_type' => 'nullable|string',
-                'car_location' => 'nullable|string'
+                'powertrain_type' => 'nullable|string'
             ]);
 
             if ($validator->fails()) {
@@ -202,7 +203,8 @@ class CarListController extends Controller
                 'highway_mpg' => $request->highway_mpg,
                 'city_mpg' => $request->city_mpg,
                 'powertrain_type' => $request->powertrain_type,
-                'car_location' => $request->car_location
+                'city' => $request->city,
+                'country' => $request->country
             ]);
 
             return response()->json([
@@ -684,7 +686,8 @@ class CarListController extends Controller
                 'highway_mpg' => 'sometimes|nullable|string',
                 'city_mpg' => 'sometimes|nullable|string',
                 'powertrain_type' => 'sometimes|nullable|string',
-                'car-location' => 'sometimes|nullable|string'
+                'city' => 'sometimes|nullable|string',
+                'country' => 'sometimes|nullable|string'
             ]);
 
             Log::info('Request Data: ', $request->all());
@@ -781,7 +784,8 @@ class CarListController extends Controller
                 'highway_mpg' => $request->highway_mpg,
                 'city_mpg' => $request->city_mpg,
                 'powertrain_type' => $request->powertrain_type,
-                'car_location' => $request->car_location
+                'city' => $request->city,
+                'country' => $request->country
             ]);
 
             // Return success response
@@ -825,6 +829,13 @@ class CarListController extends Controller
         }
     }
 
+
+
+
+    public function scrapeDataLog()
+    {
+        
+    }
 
 
 
