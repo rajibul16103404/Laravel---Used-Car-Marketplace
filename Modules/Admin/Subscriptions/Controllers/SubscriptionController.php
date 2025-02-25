@@ -71,12 +71,12 @@ class SubscriptionController extends Controller
         // Check if product exists
         if (!$subscription) {
             return response()->json([
-                'message' => 'subscription not found',
+                'message' => 'Fee not found',
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Subscription data retrieved successfully',
+            'message' => 'Fee data retrieved successfully',
             'data' => $subscription,
         ], 200);
     }
@@ -89,12 +89,12 @@ class SubscriptionController extends Controller
         // Check if product exists
         if (!$subscription) {
             return response()->json([
-                'message' => 'subscription not found',
+                'message' => 'Fee not found',
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Subscription data retrieved successfully',
+            'message' => 'Fee data retrieved successfully',
             'data' => $subscription,
         ], 200);
     }
@@ -119,7 +119,7 @@ class SubscriptionController extends Controller
         $subscription = Subscription::find($id);
 
         if (!$subscription) {
-            return response()->json(['message' => 'Subscription Not Found'], 404);
+            return response()->json(['message' => 'Fee Not Found'], 404);
         }
 
         // Update the record
@@ -130,7 +130,7 @@ class SubscriptionController extends Controller
 
         // Return success response
         return response()->json([
-            'message' => 'Subscription Updated Successfully',
+            'message' => 'Fee Updated Successfully',
             'data' => $subscription,
         ], 200);
     }
@@ -142,7 +142,7 @@ class SubscriptionController extends Controller
         $subscription = Subscription::find($id);
 
         if (!$subscription) {
-            return response()->json(['message' => 'Subscription Not Found'], 404);
+            return response()->json(['message' => 'Fee Not Found'], 404);
         }
 
         // Delete the record
@@ -150,7 +150,7 @@ class SubscriptionController extends Controller
 
         // Return success response
         return response()->json([
-            'message' => 'Subscription Deleted Successfully',
+            'message' => 'Fee Deleted Successfully',
         ], 200);
     }
 

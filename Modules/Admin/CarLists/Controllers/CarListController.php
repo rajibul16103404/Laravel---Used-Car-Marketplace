@@ -49,8 +49,8 @@ class CarListController extends Controller
                 'car_id' => 'required|string',
                 'vin' => 'required|string',
                 'heading' => 'required|string',
-                'country' => 'string',
-                'city' => 'string',
+                'country' => 'nullable|string',
+                'city' => 'nullable|string',
                 'price' => 'required|string',
                 'miles' => 'nullable|string',
                 'msrp' => 'nullable|string',
@@ -141,6 +141,8 @@ class CarListController extends Controller
                 'car_id' => $request->car_id,
                 'vin' => $request->vin,
                 'heading' => $request->heading,
+                'city' => $request->city,
+                'country' => $request->country,
                 'price' => $request->price,
                 'miles' => $request->miles,
                 'msrp' => $request->msrp,
@@ -202,9 +204,8 @@ class CarListController extends Controller
                 'std_seating' => $request->std_seating,
                 'highway_mpg' => $request->highway_mpg,
                 'city_mpg' => $request->city_mpg,
-                'powertrain_type' => $request->powertrain_type,
-                'city' => $request->city,
-                'country' => $request->country
+                'powertrain_type' => $request->powertrain_type
+                
             ]);
 
             return response()->json([
@@ -623,6 +624,8 @@ class CarListController extends Controller
                 'car_id' => 'sometimes|required|string',
                 'vin' => 'sometimes|required|string',
                 'heading' => 'sometimes|required|string',
+                'city' => 'sometimes|nullable|string',
+                'country' => 'sometimes|nullable|string',
                 'price' => 'sometimes|required|string',
                 'miles' => 'sometimes|nullable|string',
                 'msrp' => 'sometimes|nullable|string',
@@ -685,9 +688,8 @@ class CarListController extends Controller
                 'std_seating' => 'sometimes|nullable|string',
                 'highway_mpg' => 'sometimes|nullable|string',
                 'city_mpg' => 'sometimes|nullable|string',
-                'powertrain_type' => 'sometimes|nullable|string',
-                'city' => 'sometimes|nullable|string',
-                'country' => 'sometimes|nullable|string'
+                'powertrain_type' => 'sometimes|nullable|string'
+                
             ]);
 
             Log::info('Request Data: ', $request->all());
@@ -722,6 +724,8 @@ class CarListController extends Controller
                 'car_id' => $request->car_id,
                 'vin' => $request->vin,
                 'heading' => $request->heading,
+                'city' => $request->city,
+                'country' => $request->country,
                 'price' => $request->price,
                 'miles' => $request->miles,
                 'msrp' => $request->msrp,
@@ -783,9 +787,7 @@ class CarListController extends Controller
                 'std_seating' => $request->std_seating,
                 'highway_mpg' => $request->highway_mpg,
                 'city_mpg' => $request->city_mpg,
-                'powertrain_type' => $request->powertrain_type,
-                'city' => $request->city,
-                'country' => $request->country
+                'powertrain_type' => $request->powertrain_type
             ]);
 
             // Return success response

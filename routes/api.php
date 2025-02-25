@@ -107,7 +107,7 @@ Route::post('/verify-car', [WhatsappCarListController::class, 'verifyCar'])->nam
 
 // Stripe Checkout
 Route::get('/create-checkout-session/{order_id}', [StripePaymentController::class, 'createCheckoutSession'])->name('checkout.payment.url');
-Route::post('stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
+Route::post('api/stripe-webhook', [StripePaymentController::class, 'webhook']); // Optional
 Route::get('/response', [StripePaymentController::class, 'webhookResponse']); // Optional
 Route::get('/payment-success', [StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');

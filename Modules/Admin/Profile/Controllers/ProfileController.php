@@ -172,11 +172,17 @@ class ProfileController extends Controller
 
 
     public function verifyUser($user_id){
+        $payment_status=null;
+
         $status = UserVerified::select('status', 'user_id')->where('user_id', $user_id)->where('payment_status', 'paid')->first();
 
         
 
-        $docs = UserVerified::select('photo_id', 'address_doc', 'business_doc')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
+        $docs = UserVerified::select('photo_id', 'address_doc', 'business_doc', 'payment_status')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
+
+        foreach($docs as $status){
+            $payment_status = $status['payment_status'];
+        }
 
         // dd($docs);
 
@@ -186,7 +192,8 @@ class ProfileController extends Controller
             'status'=>'success',
             'docs'=> $docs,
             'user'=>$user,
-            'verifyStatus'=>$status
+            'verifyStatus'=>$status,
+            'payment_status'=>$payment_status
         ]);
         
     }

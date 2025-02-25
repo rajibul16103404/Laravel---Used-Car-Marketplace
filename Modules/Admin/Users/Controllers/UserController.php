@@ -18,13 +18,6 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        // $users = Auth::where('role',0)->get();
-
-        // return response()->json([
-        //     'message' => 'Users data retrieved',
-        //     'data' => $users,
-        // ], 200);
-
         if($request->page === '0'){
             $perPage =  Auth::count();
         }
@@ -32,7 +25,20 @@ class UserController extends Controller
             $perPage = $request->input('per_page', 10);
         }
 
-        $data = Auth::where('role', 0)->paginate($perPage);
+        $qry = Auth::query();
+        if ($request->filled('email')) {
+            $qry->where('email', $request->email);
+        }
+        if ($request->filled('phone')) {
+            $qry->where('phone', $request->phone);
+        }
+        if ($request->filled('status')) {
+            $qry->where('verified', $request->status);
+        }
+
+        $data = $qry->orderBy('created_at', 'desc')->paginate($perPage);
+
+        // $data = $qry->where('role', 0)->paginate($perPage);
 
         return response()->json([
             'pagination' => [
@@ -63,10 +69,10 @@ class UserController extends Controller
         }
     
         // Retrieve user's orders with pagination
-        $orders = Checkout::where('user_id', $user->id)->paginate($perPage);
+        $orders = Checkout::where('user_id', $user->id)->orderBy('created_at', 'desc')->paginate($perPage);
     
         // Retrieve user's car list with pagination
-        $carlist = Carlist::where('dealer_id', $user->id)->paginate($perPage);
+        $carlist = Carlist::where('dealer_id', $user->id)->orderBy('created_at', 'desc')->paginate($perPage);
     
         return response()->json([
             'message' => 'User data retrieved successfully',
