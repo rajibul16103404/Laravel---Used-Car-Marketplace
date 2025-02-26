@@ -70,6 +70,7 @@ class AllDropController extends Controller
         $highway_mpg = HighwayMpg::where('status',1)->get();
         $city_mpg = CityMpg::where('status',1)->get();
         $powertraintype = PowertrainType::where('status',1)->get();
+        $car_location = CarLocation::where('status',1)->get();
 
         
         return response([
@@ -100,7 +101,7 @@ class AllDropController extends Controller
             'std_seating'=>$stdseating,
             'highway_mpg'=>$highway_mpg,
             'city_mpg'=>$city_mpg,
-            'powertrain_type'=>$powertraintype,
+            'powertrain_type'=>$powertraintype
         ],200);
     }
 }

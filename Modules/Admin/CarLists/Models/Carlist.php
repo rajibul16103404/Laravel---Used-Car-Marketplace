@@ -91,6 +91,8 @@ class Carlist extends Model
         'email',
         'fullName',
         'phone',
+        'country',
+        'city'
     ];
 
     public function cartItems(){

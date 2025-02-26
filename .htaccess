@@ -1,0 +1,42 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+</IfModule>
+
+<IfModule Litespeed>
+    RewriteEngine On
+    RewriteRule .* - [E=noabort:1]
+    RewriteRule .* - [E=noconntimeout:1]
+</IfModule>
+
+# PHP Settings
+php_value default_socket_timeout 60
+php_value max_execution_time 60
+
+# If you have the CA certificate file, uncomment and update the path
+# php_value curl.cainfo "/path/to/cacert.pem"
+
+# Additional settings
+php_value memory_limit 256M
+php_value post_max_size 64M
+php_value upload_max_filesize 64M
+
+# Proxy settings if needed
+SetEnv HTTP_PROXY ""
+SetEnv HTTPS_PROXY ""
+SetEnv NO_PROXY "localhost,127.0.0.1,graph.facebook.com"
+
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-XSRF-TOKEN, X-Auth-Token, Origin, Accept"
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Max-Age "86400"
+    Header always set Access-Control-Expose-Headers "Content-Length, X-JSON"
+
+    # Handle preflight OPTIONS request
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule>

@@ -238,7 +238,10 @@ return [
         Modules\Admin\OrderList\OrderListServiceProvider::class,
         Modules\Admin\TransactionList\TransactionListServiceProvider::class,
         Modules\Admin\ScrapData\ScrapDataServiceProvider::class,
-        Modules\Admin\CarLocation\CarLocationServiceProvider::class,
+<<<<<<< Updated upstream
+=======
+        // Modules\Admin\CarLocation\CarLocationServiceProvider::class,
+>>>>>>> Stashed changes
 
 
 

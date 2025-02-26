@@ -15,6 +15,9 @@ use Modules\Auth\Mail\VerifyEmail; // Custom email Mailable
 
 use Modules\Admin\CartItem\Models\Cart;
 use Modules\Auth\Mail\welcome_mail;
+use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -24,65 +27,85 @@ class AuthController extends Controller
     // }
     public function login(Request $request)
     {
-        $user = ModelAuth::where('email', $request->email)->first();
-
-        if($user){
-
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
+        try {
+            // Log incoming request for debugging
+            Log::info('Login attempt', [
+                'email' => $request->email
             ]);
 
-            if ($user->password === 'password' && $request->password === 'password') {
+            // Validate request with custom messages
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'password' => 'required|string',
+            ], [
+                'email.required' => 'Please enter your email address',
+                'email.email' => 'Please enter a valid email address',
+                'password.required' => 'Please enter your password',
+            ]);
+
+            // Check for validation failures
+            if ($validator->fails()) {
                 return response()->json([
-                    'message' => 'Your password must be reset.',
-                    'email' => $user->email
+                    'status' => 'error',
+                    'message' => 'Missing required fields',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Find the user
+            $user = ModelAuth::where('email', $request->email)->first();
+
+            // Check if user exists and password is correct
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Authentication failed',
+                    'errors' => [
+                        'email' => ['Invalid credentials']
+                    ]
+                ], 401);
+            }
+
+            // Check if email is verified
+            if (!$user->email_verified_at) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Email verification required',
+                    'errors' => [
+                        'email' => ['Please verify your email address before logging in']
+                    ]
                 ], 403);
             }
-            else{
-                if (!$user || !Hash::check($request->password, $user->password)) {
-                    return response()->json(['message' => 'Invalid credentials'], 401);
-                }
-                
-                if(!$user->hasVerifiedEmail()){
-                    return response()->json(['message' => 'Please verify your email address.'],403);
-                }
 
-                $count= Cart::where('user_id', $user->id)->count();
+            // Generate token
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-                // $credentials = $request->only('email', 'password');
+            // Return success response
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => $user,
+                    'token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ], 200);
 
-                // if ($token = $this->guard()->attempt($credentials)) {
-                //     return $this->respondWithToken($token, $count);
-                // }
+        } catch (\Exception $e) {
+            Log::error('Login error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
 
-                $token = auth()->login($user);
-
-                return $this->respondWithToken($token,$count);
-
-                // return response()->json(['error' => 'Unauthorized'], 401);
-        
-                // // Generate token
-                // $token = $user->createToken('API Token', ['role:' . $user->role])->plainTextToken;
-
-                
-        
-                // return response()->json([
-                //     'user' => $user,
-                //     'token' => $token,
-                //     'count' => $count,
-                // ]);
-            }
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Server error',
+                'errors' => [
+                    'general' => ['An unexpected error occurred. Please try again later.']
+                ]
+            ], 500);
         }
-        else{
-            return response()->json(['message' => 'User Not Found'], 401);
-        }
-
-        
-    
-
-
-
     }
     public function register(Request $request)
     {

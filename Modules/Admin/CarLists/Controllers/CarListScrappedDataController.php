@@ -53,9 +53,18 @@ class CarListScrappedDataController extends Controller
             }
 
             $counter = $this->getLastCounter();
+            $totalRecords = count($cars);
+            $processedCars = [];
+            $maxProcessPerRun = 1; // Process 10 records per run
+            $processed = 0;
 
-            $insertedCars = [];
-            foreach ($cars as $car) {
+            while ($counter < $totalRecords && $processed < $maxProcessPerRun) {
+                if (!isset($cars[$counter])) {
+                    break;
+                }
+                $car = $cars[$counter];
+                
+                // Process the car data
                 $make = $this->getOrCreateMake($car['make_id'] ?? null);
                 $model = $this->getOrCreateModel($car['model_id'] ?? null);
                 $color = $this->getOrCreateColor($car['color_id'] ?? null);
@@ -65,17 +74,22 @@ class CarListScrappedDataController extends Controller
                 $engine_size = $this->getOrCreateEngineSize($car['engine_size_id'] ?? null);
                 $doors = $this->getOrCreateDoors($car['door_id'] ?? null);
                 $cylinders = $this->getOrCreateCylinders($car['cylinder_id'] ?? null);
-                $car_location = $this->getOrCreateCarLocation($car['location_id'] ?? null);
-                $heading = $this->extractHeadingFromUrl($car['url']);
-                $photo_links = json_encode($car['images'] ?? []);
                 
+                // Fix heading construction using original values from JSON
+                $heading = trim($car['make_id'] . ' ' . $car['model_id'] . ' ' . $car['year_id']);
+                $photo_links = json_encode($car['images'] ?? []);
                 $user_id = null;
                 if($car['source'] === "qatarliving") {
                     $user = Auth::select('id')->where('email', 'qal@demo.com')->first();
                     $user_id = $user->id ?? null;
                 }
+                $country = ucfirst(strtolower('Qatar')); // Converts to "Qatar"
+
+                $city = ucfirst(strtolower($car['location_id'] ?? null)); // Converts to "Qatar"
 
                 $carlist = Carlist::create([
+                    'country' => $country,
+                    'city' => $city,
                     'heading' => $heading,
                     'price' => $car['price'] ?? null,
                     'miles' => $car['mileage'] ?? null,
@@ -96,56 +110,52 @@ class CarListScrappedDataController extends Controller
                     'created_at' => $car['created_at'] ?? null,
                     'updated_at' => $car['updated_at'] ?? null
                 ]);
-
+                $processedCars[] = $carlist;
                 $counter++;
-                $insertedCars[] = $carlist;
-            }
-            $this->storeCounter($counter);
-            return response()->json(["message" => "{$counter} Car listings added successfully", "data"  => $insertedCars], 201);
+                $processed++;
+                $this->storeCounter($counter);
+            }  // Added missing closing brace for while loop
+            return response()->json([
+                "message" => "Processed {$processed} records",
+                "data" => $processedCars,
+                "progress" => [
+                    "current" => $counter,
+                    "total" => $totalRecords,
+                    "remaining" => $totalRecords - $counter,
+                    "completed" => ($counter >= $totalRecords)
+                ]
+            ], 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Something went wrong.', 'message' => $e->getMessage()], 500);
         }
     }
-
     private function getOrCreateMake($makeName) {
         return $makeName ? Make::firstOrCreate(['name' => $makeName])->id : null;
     }
-
     private function getOrCreateModel($modelName) {
         return $modelName ? Carmodel::firstOrCreate(['name' => $modelName])->id : null;
     }
-
     private function getOrCreateColor($colorName) {
         return $colorName ? ExteriorColor::firstOrCreate(['name' => $colorName])->id : null;
     }
-
     private function getOrCreateYear($yearValue) {
         return $yearValue ? Year::firstOrCreate(['name' => $yearValue])->id : null;
     }
-
     private function getOrCreateTransmission($transmissionName) {
         return $transmissionName ? Transmission::firstOrCreate(['name' => $transmissionName])->id : null;
     }
-
     private function getOrCreateFuelType($fuelTypeName) {
         return $fuelTypeName ? Fuel_type::firstOrCreate(['name' => $fuelTypeName])->id : null;
     }
-
     private function getOrCreateEngineSize($engineSizeValue) {
         return $engineSizeValue ? EngineSize::firstOrCreate(['name' => $engineSizeValue])->id : null;
     }
-
     private function getOrCreateDoors($doorCount) {
         return $doorCount ? Door::firstOrCreate(['name' => $doorCount])->id : null;
     }
-
     private function getOrCreateCylinders($cylinderCount) {
         return $cylinderCount ? Cylinder::firstOrCreate(['name' => $cylinderCount])->id : null;
     }
-    private function getOrCreateCarLocation($locationCount) {
-        return $locationCount ? CarLocation::firstOrCreate(['name' => $locationCount])->id : null;
-    }
-
     private function extractHeadingFromUrl($url) {
         $parts = explode('/', $url);
         $lastPart = end($parts);
