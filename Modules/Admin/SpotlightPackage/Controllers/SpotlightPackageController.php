@@ -33,7 +33,7 @@ class SpotlightPackageController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'New feature Added Successfully',
+            'message' => 'New Spotlight Package Added Successfully',
             'data' => $Spotlight,
         ], status: 201);
     }
