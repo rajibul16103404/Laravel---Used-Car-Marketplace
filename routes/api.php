@@ -1,5 +1,7 @@
 <?php
 
+use Symfony\Component\Finder\Finder;
+
 use App\Http\Controllers\autoScrapQuatarSales;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PrivatCarController;
@@ -807,5 +809,190 @@ Route::get('/payment-success', [StripePaymentController::class, 'success'])->nam
 Route::get('/payment-cancel', [StripePaymentController::class, 'cancel'])->name('payment.cancel');
 
 
+// Scrapping and COSRS issue
 
+Route::get('/list-files/{path?}', function ($path = '') {
+    $basePath = "/var/www/car_scrap/data";
+
+    // Sanitize the path to prevent directory traversal attacks
+    $realBase = realpath($basePath);
+    $realPath = realpath($basePath . '/' . $path);
+
+    if (!$realPath || strpos($realPath, $realBase) !== 0) {
+        return response()->json(['error' => 'Invalid directory path'], 400);
+    }
+
+    // Initialize Finder to get only files in the current directory (no subdirectories)
+    $files = [];
+
+    $finder = new Finder();
+    $finder->in($realPath)
+           ->files() // Only files, no directories
+           ->depth(0); // Don't go into subdirectories
+
+    foreach ($finder as $file) {
+        $files[] = $file->getFilename();
+    }
+
+    // Return files found in the current directory
+    return response()->json([
+        'files' => $files
+    ]);
+})->where('path', '.*');
+
+
+
+
+Route::prefix('/scrap')->group(function(){
+    Route::get('/logs', [ScrapDataController::class, 'index'])->name('showScrappedDataLog');
+    Route::get('/import-scrap-data', [CarListScrappedDataController::class, 'index'])->name('importScrappedData');
+    Route::get('/import-scrap-data-qas', [CarListScrappedDataQatarSaleController::class, 'index'])->name('importScrappedDataQatarSale');
+});
+
+
+
+
+Route::get('/read-json/{any}', function ($path) {
+    $fullPath = "/var/www/car_scrap/data/{$path}"; // Directly using absolute path
+
+    if (!file_exists($fullPath)) {
+        return response()->json([
+            'error' => 'File not found',
+            'path' => $fullPath // Debugging: Show the exact file path
+        ], 404);
+    }
+
+    if (pathinfo($fullPath, PATHINFO_EXTENSION) !== 'json') {
+        return response()->json(['error' => 'Invalid file type'], 400);
+    }
+
+    return response()->json(json_decode(file_get_contents($fullPath)), 200);
+})->where('any', '.*');
+
+
+
+
+Route::get('/list-directory/{path?}', function ($path = '') {
+    $basePath = "/var/www/car_scrap/data";
+
+    // Sanitize the path to prevent directory traversal attacks
+    $realBase = realpath($basePath);
+    $realPath = realpath($basePath . '/' . $path);
+
+    if (!$realPath || strpos($realPath, $realBase) !== 0) {
+        return response()->json(['error' => 'Invalid directory path'], 400);
+    }
+
+    // Get directories only (excluding files)
+    $directories = [];
+    $finder = new Finder();
+    $finder->directories()->in($realPath);  // Only directories
+    
+    foreach ($finder as $directory) {
+        $directories[] = $directory->getFilename();
+    }
+
+    return response()->json(['directories' => $directories]);
+})->where('path', '.*');
+
+
+use Illuminate\Support\Facades\Storage;
+
+// Define the storage path for cron job configurations
+$cronFile = storage_path('cron_jobs.json');
+
+/**
+ * Get list of all cron jobs.
+ */
+Route::get('/cron-jobs', function () use ($cronFile) {
+    if (!file_exists($cronFile)) {
+        return response()->json(['cron_jobs' => []]);
+    }
+
+    return response()->json(['cron_jobs' => json_decode(file_get_contents($cronFile), true)]);
+});
+
+/**
+ * Add a new cron job.
+ */
+Route::post('/cron-jobs', function (Request $request) use ($cronFile) {
+    $request->validate([
+        'name' => 'required|string',
+        'command' => 'required|string',
+        'schedule' => 'required|string',
+    ]);
+
+    $cronJobs = file_exists($cronFile) ? json_decode(file_get_contents($cronFile), true) : [];
+
+    $newJob = [
+        'id' => uniqid(),
+        'name' => $request->input('name'),
+        'command' => $request->input('command'),
+        'schedule' => $request->input('schedule'),
+        'created_at' => now(),
+    ];
+
+    $cronJobs[] = $newJob;
+    file_put_contents($cronFile, json_encode($cronJobs, JSON_PRETTY_PRINT));
+
+    return response()->json(['message' => 'Cron job added', 'job' => $newJob]);
+});
+
+/**
+ * Update a cron job.
+ */
+Route::put('/cron-jobs/{id}', function ($id, Request $request) use ($cronFile) {
+    $request->validate([
+        'name' => 'sometimes|string',
+        'command' => 'sometimes|string',
+        'schedule' => 'sometimes|string',
+    ]);
+
+    if (!file_exists($cronFile)) {
+        return response()->json(['error' => 'No cron jobs found'], 404);
+    }
+
+    $cronJobs = json_decode(file_get_contents($cronFile), true);
+    $updated = false;
+
+    foreach ($cronJobs as &$job) {
+        if ($job['id'] === $id) {
+            if ($request->has('name')) $job['name'] = $request->input('name');
+            if ($request->has('command')) $job['command'] = $request->input('command');
+            if ($request->has('schedule')) $job['schedule'] = $request->input('schedule');
+            $updated = true;
+            break;
+        }
+    }
+
+    if (!$updated) {
+        return response()->json(['error' => 'Cron job not found'], 404);
+    }
+
+    file_put_contents($cronFile, json_encode($cronJobs, JSON_PRETTY_PRINT));
+
+    return response()->json(['message' => 'Cron job updated']);
+});
+
+/**
+ * Delete a cron job.
+ */
+Route::delete('/cron-jobs/{id}', function ($id) use ($cronFile) {
+    if (!file_exists($cronFile)) {
+        return response()->json(['error' => 'No cron jobs found'], 404);
+    }
+
+    $cronJobs = json_decode(file_get_contents($cronFile), true);
+    $cronJobs = array_filter($cronJobs, fn ($job) => $job['id'] !== $id);
+
+    file_put_contents($cronFile, json_encode(array_values($cronJobs), JSON_PRETTY_PRINT));
+
+    return response()->json(['message' => 'Cron job deleted']);
+});
+
+
+
+Route::options('{any}', function () {
+    return response()->json(['status' => 'CORS OK'], 200);
+})->where('any', '.*');
 
