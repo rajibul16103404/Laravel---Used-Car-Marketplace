@@ -36,13 +36,10 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
         'api' => [
-            'driver' => 'sanctum',
-            'provider' => 'users',
+            'driver' => 'jwt',
+            'provider' => 'auths',
+            'hash' => false
         ],
     ],
 
@@ -64,7 +61,7 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'auths' => [
             'driver' => 'eloquent',
             'model' => Modules\Auth\Models\Auth::class,
         ],
