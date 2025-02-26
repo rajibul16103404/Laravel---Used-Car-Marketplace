@@ -14,10 +14,6 @@ use Modules\Admin\Make\Models\Make;
 use Modules\Auth\Models\Auth;
 use Modules\Admin\Year\Models\Year;
 use Modules\Admin\Transmission\Models\Transmission;
-use Modules\Admin\FuelType\Models\FuelType;
-use Modules\Admin\EngineSize\Models\EngineSize;
-use Modules\Admin\Doors\Models\Doors;
-use Modules\Admin\Cylinders\Models\Cylinders;
 use Modules\Admin\Doors\Models\Door;
 use Modules\Admin\Fuel_Type\Models\Fuel_type;
 
@@ -76,16 +72,19 @@ class CarListScrappedDataQatarSaleController extends Controller
                 $user_id = $user->id ?? null;
 
                 $country = ucfirst(strtolower('Qatar')); // Converts to "Qatar"
+
+                $price = isset($car['price']) ? str_replace(',', '', $car['price']) : '0';
+
+                $mileage = isset($car['Mileage']) ? preg_replace('/[,\nKm]/i', '', $car['Mileage']) : '0';
                 
                 $carlist = Carlist::create([
                     'heading' => $heading,
                     'country'=> $country,
                     'city'=>null,
-                    'price' => $car['price'] ?? null,
-                    'miles' => $car['Mileage'] ?? null,
+                    'price' => $price ?? null,
+                    'miles' => $mileage ?? null,
                     'scraped_at' => $car['scraped_at'] ?? null,
                     'exterior_color' => $color,
-                    'seller_type' => $car['seller_type_id'] ?? null,
                     'photo_links' => $photo_links,
                     'dealer_id' => $user_id,
                     'year' => $year,
@@ -94,7 +93,7 @@ class CarListScrappedDataQatarSaleController extends Controller
                     'transmission' => $transmission,
                     'fuel_type' => $fuel_type,
                     'interior_color' => $InteriorColor,
-                    'doors' => $body_type,
+                    'body_type' => $body_type,
                     'cylinders' => $cylinders,
                     'created_at' => $car['created_at'] ?? null,
                     'updated_at' => $car['updated_at'] ?? null
