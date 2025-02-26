@@ -55,7 +55,7 @@ class CarListScrappedDataController extends Controller
             $counter = $this->getLastCounter();
             $totalRecords = count($cars);
             $processedCars = [];
-            $maxProcessPerRun = 1; // Process 10 records per run
+            $maxProcessPerRun = $totalRecords; // Process 10 records per run
             $processed = 0;
 
             while ($counter < $totalRecords && $processed < $maxProcessPerRun) {
@@ -71,7 +71,7 @@ class CarListScrappedDataController extends Controller
                 $year = $this->getOrCreateYear($car['year_id'] ?? null);
                 $transmission = $this->getOrCreateTransmission($car['transmission_id'] ?? null);
                 $fuel_type = $this->getOrCreateFuelType($car['fuel_type_id'] ?? null);
-                $engine_size = $this->getOrCreateEngineSize($car['engine_size_id'] ?? null);
+                $engine_size = $this->getOrCreateEngineSize($car['engine_size'] ?? null);
                 $doors = $this->getOrCreateDoors($car['door_id'] ?? null);
                 $cylinders = $this->getOrCreateCylinders($car['cylinder_id'] ?? null);
                 
@@ -114,6 +114,12 @@ class CarListScrappedDataController extends Controller
                 $processed++;
                 $this->storeCounter($counter);
             }  // Added missing closing brace for while loop
+
+            if ($counter >= $totalRecords) {
+                $this->storeCounter(0);
+            }
+
+            
             return response()->json([
                 "message" => "Processed {$processed} records",
                 "data" => $processedCars,
