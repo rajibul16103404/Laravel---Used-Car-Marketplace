@@ -105,7 +105,6 @@ class CarListScrappedDataController extends Controller
                     'engine_size' => $engine_size,
                     'doors' => $doors,
                     'cylinders' => $cylinders,
-                    'location' => $car_location,
                     'phone' => $car['phone'] ?? null,
                     'created_at' => $car['created_at'] ?? null,
                     'updated_at' => $car['updated_at'] ?? null
