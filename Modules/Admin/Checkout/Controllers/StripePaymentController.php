@@ -39,7 +39,9 @@ class StripePaymentController extends Controller
         $item = OrderItems::where('order_id', $order_id)->first();
         $car = Carlist::find($item->items);
         $codes = Checkout::where('order_id', $order_id)->first();
-        $shipping = shipping::where('country_code', $codes->country_code)->where('port_code', $codes->port_code)->first();
+        // $shipping = shipping::where('country_code', $codes->country_code)->where('port_code', $codes->port_code)->first();
+
+        $shipping = 2550;
         $platform = Subscription::where('name', 'Platform Fee')->first();
         $platformFee = ($car->price / 100) * $platform->amount;
 
