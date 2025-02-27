@@ -63,7 +63,7 @@ class StripePaymentController extends Controller
                     'product_data' => [
                         'name' => 'Shipping Fee',
                     ],
-                    'unit_amount' => $shipping->amount * 100,
+                    'unit_amount' => $shipping * 100,
                 ],
                 'quantity' => 1,
             ],
