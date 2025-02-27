@@ -234,20 +234,53 @@ class ProfileController extends Controller
     }
 
 
-    public function acceptDoc($user_id){
-        $status = UserVerified::where('user_id', $user_id)->where('payment_status', 'paid')->first();
+    public function acceptDoc($user_id)
+    {
+        try {
+            // Check if user verification record exists
+            $status = UserVerified::where('user_id', $user_id)
+                ->where('payment_status', 'paid')
+                ->first();
 
-        $updStatus = $status->update([
-            'status'=>'accepted'
-        ]);
+            if (!$status) {
+                return response()->json(['message' => 'User verification record not found or payment not completed.'], 404);
+            }
 
-        $user = ModelsAuth::where('id', $user_id)->first();
-        $updUserStatus = $user->update([
-            'verified' => 'accepted'
-        ]);
+            // Update status in UserVerified table
+            $updStatus = $status->update(['status' => 'accepted']);
 
-        return response(['message'=> 'Status Changed To Accepted Successfully.',  'status'=>$status, 'statusUser'=>$user]);
+            if (!$updStatus) {
+                return response()->json(['message' => 'Failed to update verification status.'], 500);
+            }
+
+            // Check if user record exists
+            $user = ModelsAuth::where('id', $user_id)->first();
+
+            if (!$user) {
+                return response()->json(['message' => 'User not found.'], 404);
+            }
+
+            // Update status in user table
+            $updUserStatus = $user->update(['verified' => 'accepted']);
+
+            if (!$updUserStatus) {
+                return response()->json(['message' => 'Failed to update user verification status.'], 500);
+            }
+
+            return response()->json([
+                'message' => 'Status changed to accepted successfully.',
+                'status' => $status,
+                'statusUser' => $user
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while processing the request.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+
 
     public function rejectDoc($user_id){
         $status = UserVerified::where('user_id', $user_id)->where('payment_status', 'paid')->first();
