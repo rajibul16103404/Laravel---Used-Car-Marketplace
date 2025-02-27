@@ -100,8 +100,8 @@ class WhatsappCheckoutController extends Controller
         Checkout::create([
             'order_id' => $orderId,
             'car_id' => $request->car_id,
-            // 'amount' => $shipping->amount + $platformFee + $subtotal,
-            'amount'=>$shipping,
+            'amount' => $shipping + $platformFee + $subtotal,
+            // 'amount'=>$shipping,
             'user_id' => $user->id,
             'country_code' => $request->country_code,
             'port_code' => $request->port_code,
