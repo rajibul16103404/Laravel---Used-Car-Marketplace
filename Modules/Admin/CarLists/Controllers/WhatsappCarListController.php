@@ -560,7 +560,7 @@ class WhatsappCarListController extends Controller
                 return response()->json(['error' => 'Invalid OTP or Unauthorized access'], 400);
             }
         
-            $checkOtp->update(['otp' => null, 'status' => 'active']);
+            $checkOtp->update(['otp' => null, 'status' => '']);
 
             $userVerified = ModelsAuth::where('phone', $request->phone)->first();
             if($userVerified){
