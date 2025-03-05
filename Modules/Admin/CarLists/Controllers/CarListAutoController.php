@@ -539,8 +539,37 @@ class CarListAutoController extends Controller
     }
     
 
+    public function correctionInventoryType()
+    {
+        try {
+            // Retrieve records where 'seller_type' is not null
+            $data = Carlist::whereNotNull('inventory_type')->get();
+    
+            foreach ($data as $item) {
+                $sellerTypeName = $item->inventory_type; // Directly using the name from DB
+    
+                // Find the SellerType ID by name
+                $sellerType = InventoryType::where('name', $sellerTypeName)
+                    ->where('status', 1)
+                    ->first();
+    
+                if ($sellerType) {
+                    // Update the record with the new seller type ID
+                    Carlist::where('id', $item->id)->update(['inventory_type' => $sellerType->id]);
+                }
+            }
+    
+            return response()->json(['message' => "Inventory types updated successfully."], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    
+    
     
 }
 
 
 
+ 

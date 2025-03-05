@@ -42,34 +42,34 @@ use Modules\Admin\Year\Models\Year;
 class AllDropController extends Controller
 {
     public function index(){
-        $exterior = ExteriorColor::where('status',1)->get();
-        $interior = InteriorColor::where('status',1)->get();
-        $inventory_type = InventoryType::where('status',1)->get();
-        $seller_type = SellerType::where('status',1)->get();
-        $year = Year::where('status',1)->get();
-        $make = Make::where('status',1)->get();
-        $model = Carmodel::where('status',1)->get();
-        $trim = Trim::where('status',1)->get();
-        $version = Version::where('status',1)->get();
-        $body_type = Body_Type::where('status',1)->get();
-        $body_subtype = BodySubType::where('status',1)->get();
-        $vehicle_type = VehicleType::where('status',1)->get();
-        $transmission = Transmission::where('status',1)->get();
-        $drivetrain = DriveTrain::where('status',1)->get();
-        $fuel_type = Fuel_type::where('status',1)->get();
-        $engine = Engine::where('status',1)->get();
-        $enginesize = EngineSize::where('status',1)->get();
-        $engineblock = EngineBlock::where('status',1)->get();
-        $door = Door::where('status',1)->get();
-        $cylinder = Cylinder::where('status',1)->get();
-        $madein = MadeIn::where('status',1)->get();
-        $overallheight = OverallHeight::where('status',1)->get();
-        $overalllength = OverallLength::where('status',1)->get();
-        $overallwidth = OverallWidth::where('status',1)->get();
-        $stdseating = StdSeating::where('status',1)->get();
-        $highway_mpg = HighwayMpg::where('status',1)->get();
-        $city_mpg = CityMpg::where('status',1)->get();
-        $powertraintype = PowertrainType::where('status',1)->get();
+        $exterior = ExteriorColor::where('status',1)->lazy();
+        $interior = InteriorColor::where('status',1)->lazy();
+        $inventory_type = InventoryType::where('status',1)->lazy();
+        $seller_type = SellerType::where('status',1)->lazy();
+        $year = Year::where('status',1)->lazy();
+        $make = Make::where('status',1)->lazy();
+        $model = Carmodel::where('status',1)->lazy();
+        $trim = Trim::where('status',1)->lazy();
+        $version = Version::where('status',1)->lazy();
+        $body_type = Body_Type::where('status',1)->lazy();
+        $body_subtype = BodySubType::where('status',1)->lazy();
+        $vehicle_type = VehicleType::where('status',1)->lazy();
+        $transmission = Transmission::where('status',1)->lazy();
+        $drivetrain = DriveTrain::where('status',1)->lazy();
+        $fuel_type = Fuel_type::where('status',1)->lazy();
+        $engine = Engine::where('status',1)->lazy();
+        $enginesize = EngineSize::where('status',1)->lazy();
+        $engineblock = EngineBlock::where('status',1)->lazy();
+        $door = Door::where('status',1)->lazy();
+        $cylinder = Cylinder::where('status',1)->lazy();
+        $madein = MadeIn::where('status',1)->lazy();
+        $overallheight = OverallHeight::where('status',1)->lazy();
+        $overalllength = OverallLength::where('status',1)->lazy();
+        $overallwidth = OverallWidth::where('status',1)->lazy();
+        $stdseating = StdSeating::where('status',1)->lazy();
+        $highway_mpg = HighwayMpg::where('status',1)->lazy();
+        $city_mpg = CityMpg::where('status',1)->lazy();
+        $powertraintype = PowertrainType::where('status',1)->lazy();
 
         
         return response([

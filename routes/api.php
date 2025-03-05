@@ -541,6 +541,8 @@ Route::middleware(['api'])->group(function () {
             Route::get('/marketCheck', [CarListAutoController::class, 'marketCheck'])->name('MarketCheck');
             Route::get('/autoDev', [CarListAutoController::class, 'autoDev'])->name('AutoDev');
             Route::get('/vin', [CarListAutoController::class, 'get_vin'])->name('vin_store');
+
+            Route::get('/inventory_correct', [CarListAutoController::class, 'correctionInventoryType'])->name('correctionInventoryType');
             
             // return response()->json(['message' => 'Welcome, Admin']);
         });

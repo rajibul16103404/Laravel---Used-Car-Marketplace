@@ -309,7 +309,7 @@ class ProfileController extends Controller
 
         $orders = Checkout::count();
 
-        $verify = UserVerified::count();
+        $verify = UserVerified::where('status', 'accepted')->count();
 
         $platformFee = Checkout::sum('platform_fee');
 

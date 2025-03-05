@@ -37,7 +37,17 @@ class BodySubTypeController extends Controller
     {
         try {
             $perPage = $request->page === '0' ? BodySubType::count() : $request->input('per_page', 10);
-            $data = BodySubType::orderBy('created_at', 'desc')->paginate($perPage);
+            
+
+            $qry = BodySubType::query();
+
+            // Apply Filters
+            if ($request->filled('nameSearch')) {
+                $qry->where('name', 'LIKE', '%' . $request->nameSearch . '%');
+            }
+
+
+            $data = $qry->orderBy('created_at', 'desc')->paginate($perPage);
 
             return response()->json([
                 'pagination' => [
