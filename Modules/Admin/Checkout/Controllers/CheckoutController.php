@@ -47,13 +47,15 @@ class CheckoutController extends Controller
             $subtotal = 0;
 
             // Retrieve Shipping Fee
-            $shipping = Shipping::where('country_code', $request->country_code)
-                ->where('port_code', $request->port_code)
-                ->first();
+            // $shipping = Shipping::where('country_code', $request->country_code)
+            //     ->where('port_code', $request->port_code)
+            //     ->first();
 
-            if (!$shipping) {
-                return response()->json(['error' => 'Shipping details not found for the selected port.'], 404);
-            }
+            // if (!$shipping) {
+            //     return response()->json(['error' => 'Shipping details not found for the selected port.'], 404);
+            // }
+
+            $shipping = 2550;
 
             // Check if Car exists
             $availableCar = Carlist::find($request->carlist_id);
