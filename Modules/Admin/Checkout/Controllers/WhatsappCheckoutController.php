@@ -21,8 +21,8 @@ class WhatsappCheckoutController extends Controller
     public function checkout(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'country_code' => 'required|string|max:255',
-            'port_code' => 'required|string|max:255',
+            'country_code' => 'nullable|string|max:255',
+            'port_code' => 'nullable|string|max:255',
             'fullName' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
             'street' => 'required|string|max:255',
