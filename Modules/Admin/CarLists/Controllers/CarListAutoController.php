@@ -565,7 +565,7 @@ class CarListAutoController extends Controller
         $apiKey = env('autoDev');
         $baseUrl = "https://auto.dev/api/listings?apikey={$apiKey}";
         $page = 1; 
-        $maxPages = 1; // Limit to prevent infinite loops
+        $maxPages = 150; // Limit to prevent infinite loops
 
         try {
             while ($page <= $maxPages) {
