@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
 use Modules\Admin\CarLists\Models\Carlist;
+use Modules\Admin\CarLists\Models\City;
 use Modules\Admin\CarLists\Models\Country;
 use Modules\Admin\CarModel\Models\Carmodel;
 use Modules\Admin\City_Mpg\Models\CityMpg;
@@ -51,6 +52,7 @@ class CarListAutoController extends Controller
         $start = 0;
         $rows = 25; // Number of records per page
         $totalFetched = 0;
+
         
 
         
@@ -365,9 +367,9 @@ class CarListAutoController extends Controller
                             //     $modDealerId = $user_id->id;
                             // }
 
-                            $country = Country::where('iso2', $car['dealer']['country']??null)->first();
+                            $country = Country::where('iso2', $car['dealer']['country'])->first();
 
-                            dd($country);
+                            
 
 
 
@@ -464,88 +466,206 @@ class CarListAutoController extends Controller
 
     }
 
+    // {
+    //     $apiKey = env('autoDev');
+    //     $baseUrl = "https://auto.dev/api/listings?apikey={$apiKey}";
+    //     $start = 0;
+    //     $maxPages = 100; // Safety limit for max API requests
+    
+    //     try {
+    //         for ($page = 0; $page < $maxPages; $page++) {
+    //             $url = "{$baseUrl}&page={$start}";
+    //             try{
+    //                 $response = Http::get($url);
+        
+    //                 if (!$response->successful()) {
+    //                     return response()->json(['message' => 'API request failed'], 500);
+    //                 }
+        
+    //                 $data = $response->json();
+        
+    //                 if (!isset($data['records']) || !is_array($data['records']) || count($data['records']) === 0) {
+    //                     break; // Stop when no more data is available
+    //                 }
+    //             } catch (\Throwable $e) {
+    //                 Log::error("HTTP request error: " . $e->getMessage());
+    //                 return response()->json(['message' => 'Error fetching data from API'], 500);
+    //             }
+    
+    //             $carsToInsert = [];
+    //             try{
+    //                 foreach ($data['records'] as $car) {
+    //                     $countryID = City::where('name', $car['city'])->where('state_code', $car['state'])->first();
+
+
+    //                     $country = Country::where('id', $countryID->country_id)->first();
+
+
+    //                     if (Carlist::where('car_id', $car['id'] ?? null)->orWhere('vin', $car['vin'] ?? null)->exists()) {
+    //                         $carsToInsert[] = [
+    //                             'car_id' => $car['id'],
+    //                             'vin' => $car['vin'],
+    //                             'heading' => ($car['make'] ?? '') . ' ' . ($car['model'] ?? '') . ' ' . ($car['year'] ?? ''),
+    //                             'country' => $country->name ?? null,
+    //                             'city' => $car['city'] ?? null,
+    //                             'price' => isset($car['price']) ? (int) filter_var($car['price'], FILTER_SANITIZE_NUMBER_INT) : null,
+    //                             'miles' => $car['mileage'] ?? null,
+    //                             'msrp' => $car['msrp'] ?? null,
+    //                             'vdp_url' => $car['vdp_url'] ?? null,
+    //                             'photo_links' => isset($car['photoUrls']) && is_array($car['photoUrls']) 
+    //                                 ? implode(',', array_slice($car['photoUrls'], 1)) 
+    //                                 : null,
+    //                             'year' => Year::firstOrCreate(['name' => $car['year'] ?? ''])->id ?? null,
+    //                             'make' => Make::firstOrCreate(['name' => $car['make'] ?? ''])->id ?? null,
+    //                             'model' => Carmodel::firstOrCreate(['name' => $car['model'] ?? ''])->id ?? null,
+    //                             'trim' => Trim::firstOrCreate(['name' => $car['trim'] ?? ''])->id ?? null,
+    //                             'body_type' => Body_Type::firstOrCreate(['name' => $car['bodyType'] ?? ''])->id ?? null,
+    //                             'body_subtype' => BodySubType::firstOrCreate(['name' => $car['bodyStyle'] ?? ''])->id ?? null,
+    //                             'inventory_type' => InventoryType::firstOrCreate(['name' => $car['condition'] ?? ''])->id ?? null,
+    //                             'seller_type' => SellerType::firstOrCreate(['name' => $car['partnerType'] ?? ''])->id ?? null,
+    //                             'exterior_color' => ExteriorColor::firstOrCreate(['name' => $car['displayColor'] ?? ''])->id ?? null,
+    //                             'created_at' => now(),
+    //                             'updated_at' => now(),
+    //                         ];
+    //                     }
+    //                 }
+    //             } catch (\Throwable $e) {
+    //                 Log::error("Error processing car ID " . (isset($car['id']) ? $car['id'] : 'Unknown') . ": " . $e->getMessage());
+
+    //             }
+
+                
+    
+    //             if (!empty($carsToInsert)) {
+    //                 try{
+    //                     Carlist::insert($carsToInsert); // Bulk insert for efficiency
+    //                 } catch (\Throwable $e) {
+    //                     Log::error("Error inserting data into Carlist: " . $e->getMessage());
+    //                     return response()->json(['message' => 'Database error while inserting records.'], 500);
+    //                 }
+    //             }
+
+    //             // dd($carsToInsert);
+    
+    //             // Move to the next page based on the number of records received
+    //             $start += count($data['records']);
+    //         }
+            
+    
+    //         return response()->json(['message' => "Data stored successfully."]);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+    //     }
+    // }
+    
 
 
     public function autoDev()
     {
         $apiKey = env('autoDev');
         $baseUrl = "https://auto.dev/api/listings?apikey={$apiKey}";
-        $start = 0;
-        $maxPages = 100; // Safety limit for max API requests
-    
-        try {
-            for ($page = 0; $page < $maxPages; $page++) {
-                $url = "{$baseUrl}&page={$start}";
-                try{
-                    $response = Http::get($url);
-        
-                    if (!$response->successful()) {
-                        return response()->json(['message' => 'API request failed'], 500);
-                    }
-        
-                    $data = $response->json();
-        
-                    if (!isset($data['records']) || !is_array($data['records']) || count($data['records']) === 0) {
-                        break; // Stop when no more data is available
-                    }
-                } catch (\Throwable $e) {
-                    Log::error("HTTP request error: " . $e->getMessage());
-                    return response()->json(['message' => 'Error fetching data from API'], 500);
-                }
-    
-                $carsToInsert = [];
-                try{
-                    foreach ($data['records'] as $car) {
-                        if (!Carlist::where('car_id', $car['id'] ?? null)->orWhere('vin', $car['vin'] ?? null)->exists()) {
-                            $carsToInsert[] = [
-                                'car_id' => $car['id'],
-                                'vin' => $car['vin'],
-                                'heading' => ($car['make'] ?? '') . ' ' . ($car['model'] ?? '') . ' ' . ($car['year'] ?? ''),
-                                'price' => isset($car['price']) ? (int) filter_var($car['price'], FILTER_SANITIZE_NUMBER_INT) : null,
-                                'miles' => $car['mileage'] ?? null,
-                                'msrp' => $car['msrp'] ?? null,
-                                'vdp_url' => $car['vdp_url'] ?? null,
-                                'photo_links' => isset($car['photoUrls']) && is_array($car['photoUrls']) 
-                                    ? implode(',', array_slice($car['photoUrls'], 1)) 
-                                    : null,
-                                'year' => Year::firstOrCreate(['name' => $car['year'] ?? ''])->id ?? null,
-                                'make' => Make::firstOrCreate(['name' => $car['make'] ?? ''])->id ?? null,
-                                'model' => Carmodel::firstOrCreate(['name' => $car['model'] ?? ''])->id ?? null,
-                                'trim' => Trim::firstOrCreate(['name' => $car['trim'] ?? ''])->id ?? null,
-                                'body_type' => Body_Type::firstOrCreate(['name' => $car['bodyType'] ?? ''])->id ?? null,
-                                'body_subtype' => BodySubType::firstOrCreate(['name' => $car['bodyStyle'] ?? ''])->id ?? null,
-                                'inventory_type' => InventoryType::firstOrCreate(['name' => $car['condition'] ?? ''])->id ?? null,
-                                'seller_type' => SellerType::firstOrCreate(['name' => $car['partnerType'] ?? ''])->id ?? null,
-                                'exterior_color' => ExteriorColor::firstOrCreate(['name' => $car['displayColor'] ?? ''])->id ?? null,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    Log::error("Error processing car ID " . (isset($car['id']) ? $car['id'] : 'Unknown') . ": " . $e->getMessage());
+        $page = 1; 
+        $maxPages = 1; // Limit to prevent infinite loops
 
+        try {
+            while ($page <= $maxPages) {
+                $url = "{$baseUrl}&page={$page}";
+
+                try {
+                    $response = Http::get($url);
+
+                    if (!$response->successful()) {
+                        Log::error("API request failed on page {$page}");
+                        break; // Stop on API failure
+                    }
+
+                    $data = $response->json();
+                    if (empty($data['records'])) {
+                        break; // Stop if no more data
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("HTTP request error on page {$page}: " . $e->getMessage());
+                    continue; // Skip this page and move to the next
                 }
-    
+
+                // Fetch existing car IDs & VINs in bulk for efficient checking
+                $existingCars = Carlist::whereIn('car_id', array_column($data['records'], 'id'))
+                    ->orWhereIn('vin', array_column($data['records'], 'vin'))
+                    ->pluck('car_id', 'vin')
+                    ->toArray();
+
+                $carsToInsert = [];
+
+                try {
+                    foreach ($data['records'] as $car) {
+
+                        $countryID = City::where('name', $car['city'])->where('state_code', $car['state'])->first();
+
+
+                        $country = Country::where('id', $countryID->country_id)->first();
+
+                        // convert Mileage
+                        $mileageString = $car['mileage'];
+                        if($mileageString === 'New'){
+                            $mileage = 0;
+                        }else{
+                            $mileage = (int) filter_var($mileageString, FILTER_SANITIZE_NUMBER_INT);
+                        }
+
+                        $carId = $car['id'] ?? null;
+                        $vin = $car['vin'] ?? null;
+
+                        if (!$carId || !$vin || isset($existingCars[$carId]) || isset($existingCars[$vin])) {
+                            continue; // Skip duplicates
+                        }
+
+                        $carsToInsert[] = [
+                            'car_id' => $carId,
+                            'vin' => $vin,
+                            'heading' => trim(($car['make'] ?? '') . ' ' . ($car['model'] ?? '') . ' ' . ($car['year'] ?? '')),
+                            'country' => $country->name ?? null,
+                            'city' => $car['city'] ?? null,
+                            'price' => isset($car['price']) ? (int) filter_var($car['price'], FILTER_SANITIZE_NUMBER_INT) : null,
+                            'miles' => $mileage ?? null,
+                            'msrp' => $car['msrp'] ?? null,
+                            'vdp_url' => $car['vdp_url'] ?? null,
+                            'photo_links' => isset($car['photoUrls']) && is_array($car['photoUrls']) 
+                                ? implode(',', array_slice($car['photoUrls'], 1)) 
+                                : null,
+                            'year' => Year::firstOrCreate(['name' => $car['year'] ?? ''])->id ?? null,
+                            'make' => Make::firstOrCreate(['name' => $car['make'] ?? ''])->id ?? null,
+                            'model' => Carmodel::firstOrCreate(['name' => $car['model'] ?? ''])->id ?? null,
+                            'trim' => Trim::firstOrCreate(['name' => $car['trim'] ?? ''])->id ?? null,
+                            'body_type' => Body_Type::firstOrCreate(['name' => $car['bodyType'] ?? ''])->id ?? null,
+                            'body_subtype' => BodySubType::firstOrCreate(['name' => $car['bodyStyle'] ?? ''])->id ?? null,
+                            'inventory_type' => InventoryType::firstOrCreate(['name' => $car['condition'] ?? ''])->id ?? null,
+                            'seller_type' => SellerType::firstOrCreate(['name' => $car['partnerType'] ?? ''])->id ?? null,
+                            'exterior_color' => ExteriorColor::firstOrCreate(['name' => $car['displayColor'] ?? ''])->id ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    Log::error("Error processing records on page {$page}: " . $e->getMessage());
+                    continue;
+                }
+
                 if (!empty($carsToInsert)) {
-                    try{
-                        Carlist::insert($carsToInsert); // Bulk insert for efficiency
+                    try {
+                        Carlist::insert($carsToInsert);
                     } catch (\Throwable $e) {
-                        Log::error("Error inserting data into Carlist: " . $e->getMessage());
-                        return response()->json(['message' => 'Database error while inserting records.'], 500);
+                        Log::error("Database insert error on page {$page}: " . $e->getMessage());
                     }
                 }
-    
-                // Move to the next page based on the number of records received
-                $start += count($data['records']);
+
+                $page++; // Move to the next page
             }
-    
+
             return response()->json(['message' => "Data stored successfully."]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
-    
 
     public function correctionInventoryType()
     {
