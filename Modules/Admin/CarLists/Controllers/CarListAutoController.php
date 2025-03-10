@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Admin\Body_Subtype\Models\BodySubType;
 use Modules\Admin\Body_Type\Models\Body_Type;
 use Modules\Admin\CarLists\Models\Carlist;
+use Modules\Admin\CarLists\Models\Country;
 use Modules\Admin\CarModel\Models\Carmodel;
 use Modules\Admin\City_Mpg\Models\CityMpg;
 use Modules\Admin\Color\ExteriorColor\Models\ExteriorColor;
@@ -76,6 +77,9 @@ class CarListAutoController extends Controller
                     foreach ($data['listings'] as $car) {
 
                         try{
+
+                            $country = 
+
                             $existingCar = Carlist::where('car_id', $car['id'] ?? null)->orWhere('vin', $car['vin'] ?? null)->first();
 
                             // Fetch or create `ExteriorColor`
@@ -361,7 +365,9 @@ class CarListAutoController extends Controller
                             //     $modDealerId = $user_id->id;
                             // }
 
-                            
+                            $country = Country::where('iso2', $car['dealer']['country']??null)->first();
+
+                            dd($country);
 
 
 
@@ -372,6 +378,8 @@ class CarListAutoController extends Controller
                                     ['car_id'=>$car['id'],
                                                 'vin'=>$car['vin'],
                                                 'heading'=>$car['heading']??null,
+                                                'country'=>$country->name??null,
+                                                'city'=>$car['dealer']['city']??null,
                                                 'price'=>$car['price']??null,
                                                 'miles'=>$car['miles']??null,
                                                 'msrp'=>$car['msrp']??null,
